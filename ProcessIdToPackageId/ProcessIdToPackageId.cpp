@@ -4,52 +4,58 @@
 
 using namespace std;
 
-wstring processToPackageFullName(HANDLE process) {
+struct ProcessInfo {
+	wstring packageFullName;
+	LONG status;
+};
+
+ProcessInfo processToPackageFullName(HANDLE process) {
 	static const size_t packageFullNameMaxSize = 1024;
 	wchar_t packageFullNameAsCStr[packageFullNameMaxSize] = L"\0";
-	wstring packageFullNameAsString;
+	ProcessInfo processInfo;
 
 	UINT32 packageFullNameAsCStrLength = ARRAYSIZE(packageFullNameAsCStr);
 	LONG rc = GetPackageFamilyName(process, &packageFullNameAsCStrLength, packageFullNameAsCStr);
-	if (rc != APPMODEL_ERROR_NO_PACKAGE) {
-		packageFullNameAsString = packageFullNameAsCStr;
-	}
-	else {
-		wcerr << L" error reading packageFullName: " << rc;
+	processInfo.status = rc;
+
+	if (rc == ERROR_SUCCESS) {
+		processInfo.packageFullName = packageFullNameAsCStr;
 	}
 
-	return packageFullNameAsString;
+	return processInfo;
 }
 
 void showProcessAndPackageInfo(const UINT32 processId, HANDLE process) {
-	wstring packageFullName = processToPackageFullName(process);
-	wcout << processId;
+	ProcessInfo processInfo = processToPackageFullName(process);
 
-	if (!packageFullName.empty()) {
-		wcout << L"\t" << packageFullName.c_str();
+	if (processInfo.status == ERROR_SUCCESS) {
+		wcout << processId << L"\t" << processInfo.packageFullName.c_str();
+	}
+	else {
+		wcout << L"Unable to obtain packageFullName. Error: " << processInfo.status;
 	}
 
 	wcout << endl;
 }
 
-void handleProcessId(const UINT32 processId) {
+void showPackageInfoByProcessId(const UINT32 processId) {
 	HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
 	if (process) {
 		showProcessAndPackageInfo(processId, process);
 		CloseHandle(process);
 	}
 	else {
-		wcerr << L"Unable to open processId " << processId << ". Error: " << GetLastError() << endl;
+		wcout << L"Unable to open processId " << processId << L". Error: " << GetLastError() << endl;
 	}
 }
 
-void handleProcessId(const wchar_t *processIdAsCStr) {
+void showPackageInfoByProcessId(const wchar_t *processIdAsCStr) {
 	UINT32 processIdAsUInt = wcstoul(processIdAsCStr, NULL, 10);
 	if (processIdAsUInt > 0) {
-		handleProcessId(processIdAsUInt);
+		showPackageInfoByProcessId(processIdAsUInt);
 	}
 	else {
-		wcerr << L"Invalid processId specified: " << processIdAsCStr << endl;
+		wcout << L"Invalid processId specified: " << processIdAsCStr << endl;
 	}
 }
 
@@ -58,11 +64,11 @@ int __cdecl wmain(__in const int argumentsSize, __in_ecount(argc) const wchar_t 
 
 	if (argumentsSize >= argumentsSizeMinimum) {
 		for (int argumentIndex = 1; argumentIndex < argumentsSize; ++argumentIndex) {
-			handleProcessId(arguments[argumentIndex]);
+			showPackageInfoByProcessId(arguments[argumentIndex]);
 		}
 	}
 	else {
-		wcerr << L"ProcessIdToPackageId [Process Id] ([Process Id] ...)" << endl
+		wcout << L"ProcessIdToPackageId [Process Id] ([Process Id] ...)" << endl
 			<< L"\tEvery process ID on the command line produces a line of output listing the " << endl
 			<< L"\tprocess ID followed by the full package ID if the process has package identity or" << endl
 			<< L"\tjust the process ID if it has no package identity." << endl;
