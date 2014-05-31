@@ -4,9 +4,9 @@ Fill in functionality gaps for Windows Store AppX package PowerShell commands.
 
 ## Query running process package info
 
-Unforunately there's no builtin cmdlet or command line executable that can tell you the PackageFamilyName of a process. AppxUtilities makes a ProcessIdToPackageId.exe, Add-PackageFamilyName.ps1, and pspfn.ps1.
+Unforunately there's no builtin cmdlet or command line executable that can tell you the PackageFamilyName of a process. AppxUtilities makes a ProcessIdToPackageId.exe, Get-ProcessPackageFamilyName.ps1, and pspfn.ps1.
 
-    PS C:\Users\Dave> ps | Add-PackageFamilyName.ps1 | where PackageFamilyName -match Bing
+    PS C:\Users\Dave> ps | Get-ProcessPackageFamilyName.ps1 | where PackageFamilyName -match Bing
     
     Handles  NPM(K)    PM(K)      WS(K) VM(M)   CPU(s)     Id ProcessName                                                  
     -------  ------    -----      ----- -----   ------     -- -----------                                                  
