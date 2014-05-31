@@ -1,14 +1,8 @@
-begin {
-	$defaultDisplaySet = "Handles", "NPM", "PM", "WS", "VM", "CPU", "Id", "ProcessName", "PackageFamilyName";
-	$defaultDisplayPropertySet = New-Object System.Management.Automation.PSPropertySet("DefaultDisplayPropertySet", [string[]] $defaultDisplaySet)
-	$PSStandardMembers = [System.Management.Automation.PSMemberInfo[]]@($defaultDisplayPropertySet);
-}
+begin {}
 process {
-	$pfn = (ProcessIdToPackageId $_.Id).Split("`t")[1];
+	$processIdToPackageId = ((Split-Path -Parent ($MyInvocation.MyCommand.Path)) + "\ProcessIdToPackageId.exe");
+	$pfn = (.$processIdToPackageId $_.Id).Split("`t")[1];
 	$_ | Add-Member PackageFamilyName $pfn;
-
-	$_.PSObject.TypeNames.Insert(0, "ProcessWithPackageFamilyName");
-    # $_ | Add-Member -Force MemberSet PSStandardMembers $PSStandardMembers;
 
 	$_;
 }
