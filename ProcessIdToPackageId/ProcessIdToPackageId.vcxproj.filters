@@ -19,4 +19,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Add-PackageFamilyName.ps1">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="pspfn.ps1">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

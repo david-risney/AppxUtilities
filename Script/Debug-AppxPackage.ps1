@@ -1,5 +1,4 @@
-param(
-	[string[]] $PackageFullNames,
+param([string[]] $PackageFullNames,
     [string] $OnLaunch,
     [switch] $Off)
 

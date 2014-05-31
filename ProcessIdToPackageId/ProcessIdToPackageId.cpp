@@ -15,7 +15,7 @@ ProcessInfo processToPackageFullName(HANDLE process) {
 	ProcessInfo processInfo;
 
 	UINT32 packageFullNameAsCStrLength = ARRAYSIZE(packageFullNameAsCStr);
-	LONG rc = GetPackageFamilyName(process, &packageFullNameAsCStrLength, packageFullNameAsCStr);
+	LONG rc = GetPackageFullName(process, &packageFullNameAsCStrLength, packageFullNameAsCStr);
 	processInfo.status = rc;
 
 	if (rc == ERROR_SUCCESS) {

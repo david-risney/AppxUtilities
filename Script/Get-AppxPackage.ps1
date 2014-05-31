@@ -28,5 +28,5 @@ $packages | %{
         | add-member InstallTimeUtc $installTimeUtc
         );
 
-    $_ | select Name,DisplayName,ApplicationIds,PackageFamilyName,PackageFullName,Version,IsFramework,InstallLocationItem,InstallTimeUtc
+    $_;
 }
