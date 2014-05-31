@@ -58,5 +58,16 @@ For example:
 
 ## Debug a package
 
-    PS C:\Users\Dave> Get-AppxPackage | where name -match Bing | Debug-AppxPackage.ps1 -OnLaunch C:\Debuggers\windbg.exe
+This depends on [PLMDebug](http://msdn.microsoft.com/en-us/library/windows/hardware/jj680085(v=vs.85).aspx) which is available in the debugging tools of the [Windows SDK for Windows 8.1](http://msdn.microsoft.com/en-US/windows/desktop/bg162891).
 
+Attach a debugger to a package the next time it is run:
+
+    PS C:\Users\Dave> Get-AppxPackage | where name -match Bing | Debug-AppxPackage.ps1 -OnLaunch "C:\Debuggers\cdb -server tcp:port=9090 "
+
+Attach a debugger to a currently running package:
+
+    PS C:\Users\Dave> pspfn | where PackageFamilyName -match Bing | Debug-AppxPackage.ps1 C:\Debuggers\windbg.exe
+
+Turn off debugging a package:
+
+    PS C:\Users\Dave> Get-AppxPackage | where name -match Bing | Debug-AppxPackage.ps1 -Off
