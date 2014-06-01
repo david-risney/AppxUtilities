@@ -3,7 +3,12 @@ param([string] $Filter);
 $packages = ($input | %{ $_; });
 
 if (!$packages) {
-	$packages = Get-AppxPackage $Filter;
+	if ($Filter) {
+		$packages = Get-AppxPackage $Filter;
+	}
+	else {
+		$packages = Get-AppxPackage;
+	}
 }
 
 $packages | %{
@@ -16,7 +21,7 @@ $packages | %{
 	if ($_.InstallLocation -and (Test-Path $_.InstallLocation)) {
 		$installLocationItem = (gi $_.InstallLocation);
 		$installTimeUtc = $installLocationItem.CreationTimeUtc;
-		$manifestAsXml = [xml](gc $installLocationItem.GetFiles("appxmanifest.xml").fullname)
+		$manifestAsXml = Get-AppxPackageManifest -Package $_.PackageFullName;
 		$displayName = (select-xml -xml $manifestAsXml -xpath "/appx:Package/appx:Properties/appx:DisplayName" -namespace @{appx="http://schemas.microsoft.com/appx/2010/manifest"}).Node."#text"
 		$applicationIds = (@() + (select-xml -xml $manifestAsXml -xpath "//appx:Application/@Id" -namespace @{appx="http://schemas.microsoft.com/appx/2010/manifest"})) | 
 			%{ $_.Node."#text" };
@@ -31,5 +36,5 @@ $packages | %{
         | add-member InstallTimeUtc $installTimeUtc
         );
 
-    $_;
+    $_ | select Name,DisplayName,PackageFullName,ApplicationIds,InstallLocationItem,InstallTimeUtc;
 }

@@ -6,5 +6,5 @@ ps | .((Split-Path -Parent ($MyInvocation.MyCommand.Path)) + "\Get-ProcessPackag
 } | ?{
 	$_.PackageFullName -or $ShowAll;
 } | %{
-	[pscustomobject]@{PackageFullName = $_.PackageFullName; Name = $_.Name; Id = $_.Id};
+	$_ | select PackageFullName,Id,Name;
 };

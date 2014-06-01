@@ -1,5 +1,5 @@
-param([string[]] $Paths,
-    [switch] $Force
+param([object[]] $Paths,
+    [switch] $Force,
     [switch] $PassThru);
 
 $PackagesAdded = @();
@@ -16,8 +16,7 @@ $Paths + $input | %{
 
 	if ($lastError -and ($error.CategoryInfo.Category -eq "ResourceExists") -and $Force) {
 		$errorPrefix = "Deployment of package ";
-		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of pa
-	ckage ([^ ]*).*","`$1" } | %{
+		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
 			remove-appxpackage $_
 			$before = get-appxpackage;
 			add-appxpackage $Path;
