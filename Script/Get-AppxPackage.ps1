@@ -1,7 +1,9 @@
+param([string] $Filter);
+
 $packages = ($input | %{ $_; });
 
 if (!$packages) {
-	$packages = Get-AppxPackage;
+	$packages = Get-AppxPackage $Filter;
 }
 
 $packages | %{
@@ -17,7 +19,8 @@ $packages | %{
 		$manifestAsXml = [xml](gc $installLocationItem.GetFiles("appxmanifest.xml").fullname)
 		$displayName = (select-xml -xml $manifestAsXml -xpath "/appx:Package/appx:Properties/appx:DisplayName" -namespace @{appx="http://schemas.microsoft.com/appx/2010/manifest"}).Node."#text"
 		$applicationIds = (@() + (select-xml -xml $manifestAsXml -xpath "//appx:Application/@Id" -namespace @{appx="http://schemas.microsoft.com/appx/2010/manifest"})) | 
-			%{ $_.Node."#text" }
+			%{ $_.Node."#text" };
+		$applicationIds = @() + $applicationIds; # Make sure its an array even if there's only one element.
 	}
 
     ($_ `

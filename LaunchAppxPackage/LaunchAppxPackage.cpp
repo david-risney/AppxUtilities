@@ -11,7 +11,7 @@ void launchAppxPackage(__in const wchar_t *applicationUserModelId) {
 	if (SUCCEEDED(hr)) {
 		{
 			CComPtr<IApplicationActivationManager> applicationActivationManager;
-			HRESULT hr = CoCreateInstance(CLSID_ApplicationActivationManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&applicationActivationManager));
+			HRESULT hr = CoCreateInstance(CLSID_ApplicationActivationManager, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&applicationActivationManager));
 			if (SUCCEEDED(hr)) {
 				DWORD processId = 0;
 				hr = applicationActivationManager->ActivateApplication(applicationUserModelId, nullptr, AO_NONE, &processId);
@@ -34,10 +34,10 @@ void launchAppxPackage(__in const wchar_t *applicationUserModelId) {
 	}
 }
 
-void launchAppxPackage(__in const wchar_t *packageFullName, __in const wchar_t *applicationId) {
+void launchAppxPackage(__in const wchar_t *packageFamilyName, __in const wchar_t *applicationId) {
 	wstring applicationUserModelId;
 	
-	applicationUserModelId += packageFullName;
+	applicationUserModelId += packageFamilyName;
 	applicationUserModelId += L"!";
 	applicationUserModelId += applicationId;
 
@@ -45,7 +45,7 @@ void launchAppxPackage(__in const wchar_t *packageFullName, __in const wchar_t *
 }
 
 int __cdecl wmain(__in const int argumentsSize, __in_ecount(argc) const wchar_t * arguments[]) {
-	static const int packageFullNameArgumentIndex = 1,
+	static const int packageFamilyNameArgumentIndex = 1,
 		applicationUserModelIdArgumentIndex = 1,
 		applicationIdArgumentIndex = 2,
 		minimumArgumentsSize = 2,
@@ -55,11 +55,11 @@ int __cdecl wmain(__in const int argumentsSize, __in_ecount(argc) const wchar_t 
 		launchAppxPackage(arguments[applicationUserModelIdArgumentIndex]);
 	}
 	else if (argumentsSize == maximumArgumentsSize) {
-		launchAppxPackage(arguments[packageFullNameArgumentIndex], arguments[applicationIdArgumentIndex]);
+		launchAppxPackage(arguments[packageFamilyNameArgumentIndex], arguments[applicationIdArgumentIndex]);
 	}
 	else {
 		wcout << L"Launch an installed Appx app" << endl
-			<< L"\tLaunchAppxPackage.exe [Package full name] [Application ID]" << endl
+			<< L"\tLaunchAppxPackage.exe [Package family name] [Application ID]" << endl
 			<< L"\tLaunchAppxPackage.exe [Application user model ID]" << endl;
 	}
 }
