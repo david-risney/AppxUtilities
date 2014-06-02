@@ -12,8 +12,11 @@ Updates to builtin commands:
  - Additional properties on ```Get-AppxPackage.ps1``` results
  - Force install of existing packages and get package object results from ```Add-AppxPackage.ps1```
 
+## Install
 
-## Query running process package info
+## Commands
+
+### Query running process package info
 
 Unforunately there's no builtin cmdlet or command line executable that can tell you the PackageFamilyName of a process. AppxUtilities makes a ProcessIdToPackageId.exe, Get-ProcessPackageFamilyName.ps1, and pspfn.ps1.
 
@@ -36,7 +39,7 @@ Unforunately there's no builtin cmdlet or command line executable that can tell 
     ---------------                                                              -- ----
     58823DavidRisney.CloudShare_1.1.0.3_...                                   27176 WWAHost
 
-## Query installed package info
+### Query installed package info
 
 The AppxUtilities Get-AppxPackage.ps1 provides a few more properties for each AppxPackage object including the following:
 
@@ -57,12 +60,12 @@ For example:
     InstallTimeUtc      : 5/21/2014 3:12:56 PM
 
 
-## Query package file package info
+### Query package file package info
 
     PS C:\Users\Dave> dir Test.appx | Get-AppxPackageFile.ps1
     
 
-## Launch a package
+### Launch a package
 
 There's also no builtin cmdlet or executable to launch from the command line a Windows Store app by package name. AppxUtilities makes Launch-AppxPackage.
 
@@ -72,7 +75,7 @@ There's also no builtin cmdlet or executable to launch from the command line a W
     ---------------                                                              -- ----
     58823DavidRisney.CloudShare_1.1.0.3_...                                   27176 WWAHost
 
-## Add a package
+### Add a package
 
 The AppxUtilities Add-AppxPackage.ps1 has the following abilities beyond what the builtin Add-AppxPackage performs:
 
@@ -115,18 +118,61 @@ For example:
     IsDevelopmentMode : False
     Dependencies      : {Microsoft.WinJS.2.0_1.0.9600.17018_neutral__8wekyb3d8bbwe}
 
-## Debug a package
+### Debug a package
 
 This depends on [PLMDebug.exe](http://msdn.microsoft.com/en-us/library/windows/hardware/jj680085(v=vs.85).aspx) which is available in the debugging tools of the [Windows SDK for Windows 8.1](http://msdn.microsoft.com/en-US/windows/desktop/bg162891).
 
 Attach a debugger to a package the next time it is run:
 
-    PS C:\Users\Dave> Get-AppxPackage *Bing* | Debug-AppxPackage.ps1 -OnLaunch "C:\Debuggers\cdb -server tcp:port=9090 "
+    PS C:\Users\Dave> Get-AppxPackage *Cloud* | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe -server tcp:port=9090"
+    
+    
+    Name                : 58823DavidRisney.CloudShare
+    DisplayName         : Cloud Share
+    PackageFullName     : 58823DavidRisney.CloudShare_1.1.0.3_neutral__xv340bf98g09e
+    ApplicationIds      : {App}
+    InstallLocationItem : C:\Program Files\WindowsApps\58823DavidRisney.CloudShare_1.1.0.3_neutral__xv340bf98g09e
+    InstallTimeUtc      : 5/21/2014 3:12:56 PM
+
 
 Attach a debugger to a currently running package:
 
-    PS C:\Users\Dave> pspfn Bing | Debug-AppxPackage.ps1 C:\Debuggers\windbg.exe
+    PS C:\Users\Dave> pspfn Cloud | Debug-AppxPackage.ps1 -On C:\debuggers\windbg.exe
+
+
+    Name                : 58823DavidRisney.CloudShare
+    DisplayName         : Cloud Share
+    PackageFullName     : 58823DavidRisney.CloudShare_1.1.0.3_neutral__xv340bf98g09e
+    ApplicationIds      : {App}
+    InstallLocationItem : C:\Program Files\WindowsApps\58823DavidRisney.CloudShare_1.1.0.3_neutral__xv340bf98g09e
+    InstallTimeUtc      : 5/21/2014 3:12:56 PM
 
 Turn off debugging a package:
 
-    PS C:\Users\Dave> Get-AppxPackage *Bing* | Debug-AppxPackage.ps1 -Off
+    PS C:\Users\Dave> Get-AppxPackage *BingF* | Debug-AppxPackage.ps1 -Off
+
+
+    Name                : Microsoft.BingFinance
+    DisplayName         : ms-resource:BrandedAppTitle
+    PackageFullName     : Microsoft.BingFinance_3.0.2.258_x64__8wekyb3d8bbwe
+    ApplicationIds      : {AppexFinance}
+    InstallLocationItem : C:\Program Files\WindowsApps\Microsoft.BingFinance_3.0.2.258_x64__8wekyb3d8bbwe
+    InstallTimeUtc      : 5/7/2014 10:14:56 AM
+
+    Name                : Microsoft.BingFoodAndDrink
+    DisplayName         : ms-resource:AppTitleWithBranding
+    PackageFullName     : Microsoft.BingFoodAndDrink_3.0.2.258_x64__8wekyb3d8bbwe
+    ApplicationIds      : {AppexFoodAndDrink}
+    InstallLocationItem : C:\Program Files\WindowsApps\Microsoft.BingFoodAndDrink_3.0.2.258_x64__8wekyb3d8bbwe
+    InstallTimeUtc      : 5/10/2014 2:37:32 AM
+
+## Combined examples
+
+Install and launch a package under the debugger.
+
+    Add-AppxPackage.ps1 .\App.appx -PassThru | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe" | Launch-AppxPackage;
+
+Uninstall a package based on its file.
+
+    Get-AppxPackageFile.ps1 .\App.appx | Remove-AppxPackage;
+
