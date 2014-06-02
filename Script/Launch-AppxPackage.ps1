@@ -21,6 +21,6 @@ $input + $ApplicationUserModelId | %{
 		.($myPath + "\pspfn.ps1") $processId;
 	}
 	catch {
-		throw $processId;
+		throw $processId 
 	}
 };
