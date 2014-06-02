@@ -14,6 +14,8 @@ Updates to builtin commands:
 
 ## Install
 
+Extract the contents of the AppxUtilties.zip file into somewhere in your PATH.
+
 ## Commands
 
 ### Query running process package info
@@ -62,7 +64,34 @@ For example:
 
 ### Query package file package info
 
-    PS C:\Users\Dave> dir Test.appx | Get-AppxPackageFile.ps1
+Obtain package info from an appx file. If its installed it returns the installed package info and otherwise returns similar data found in the manifest in the package.
+
+    PS C:\Users\Dave> Get-AppxPackageFile.ps1 .\App.appx
+
+
+    Name                  : f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6
+    DisplayName           : App1
+    Version               : 1.0.0.0
+    Publisher             : CN=Dave
+    ProcessorArchitecture : neutral
+    ApplicationIds        : {App}
+    Manifest              : #document
+
+
+
+    PS C:\Users\Dave> Add-AppxPackage .\App.appx
+    PS C:\Users\Dave> Get-AppxPackageFile.ps1 .\App.appx
+
+
+    AppxPackage         : f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6_1.0.0.0_neutral__tbz3402trp7yy
+    Name                : f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6
+    DisplayName         : App1
+    PackageFullName     : f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6_1.0.0.0_neutral__tbz3402trp7yy
+    ApplicationIds      : {App}
+    Manifest            : #document
+    InstallLocationItem : C:\Program Files\WindowsApps\f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6_1.0.0.0_neutral__tbz3402trp7yy
+    InstallTimeUtc      : 6/2/2014 3:42:56 AM
+
     
 
 ### Launch a package
@@ -174,5 +203,5 @@ Install and launch a package under the debugger.
 
 Uninstall a package based on its file.
 
-    Get-AppxPackageFile.ps1 .\App.appx | Remove-AppxPackage;
+    (Get-AppxPackageFile.ps1 .\App.appx).AppxPackage | Remove-AppxPackage;
 

@@ -29,6 +29,7 @@ $packages | %{
 	}
 
     ($_ `
+        | add-member AppxPackage $_ -PassThru `
         | add-member DisplayName $displayName -PassThru `
         | add-member ApplicationIds $applicationIds -PassThru `
         | add-member InstallLocationItem $installLocationItem -PassThru `
@@ -36,5 +37,5 @@ $packages | %{
         | add-member InstallTimeUtc $installTimeUtc
         );
 
-    $_ | select Name,DisplayName,PackageFullName,ApplicationIds,InstallLocationItem,InstallTimeUtc;
+    $_ | select AppxPackage,Name,DisplayName,PackageFullName,ApplicationIds,Manifest,InstallLocationItem,InstallTimeUtc;
 }
