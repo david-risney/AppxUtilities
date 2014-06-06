@@ -14,7 +14,7 @@ Updates to builtin commands:
 
 ## Install
 
-Extract the contents of the AppxUtilties.zip file into somewhere in your PATH.
+Extract the contents of the [AppxUtilties.zip](https://david-risney.github.io/AppxUtilities/AppxUtilities.zip) file into somewhere in your PATH.
 
 ## Commands
 
