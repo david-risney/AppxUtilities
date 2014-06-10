@@ -14,7 +14,7 @@ Updates to builtin commands:
 
 ## Install
 
-Extract the contents of the [AppxUtilties.zip](https://david-risney.github.io/AppxUtilities/AppxUtilities.zip) file into somewhere in your PATH.
+Extract the contents of the [AppxUtilties.zip](https://david-risney.github.io/AppxUtilities/AppxUtilities.zip) file into a temporary directory. Open a new PowerShell prompt, cd to the temporary directory, and run ```Unblock-File *```. Move the files to somewhere in your PATH.
 
 ## Commands
 
