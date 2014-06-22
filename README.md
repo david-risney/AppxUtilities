@@ -5,12 +5,12 @@ Fill in functionality gaps for Windows Store AppX package PowerShell commands.
 New commands:
  - Query running process package info ```pspfn.ps1```
  - Query appx package file info ```Get-AppxPackageFile.ps1```
- - Launch an app from a package ```Get-AppxPackage *Weather* | Launch-AppxPackage.ps1```
- - Debug a package ```Get-AppxPackage *Cloud* | Debug-AppxPackage -OnLaunch "C:\debuggers\windbg.exe"```
+ - Launch an app from a package ```Get-AppxPackageExt *Weather* | Launch-AppxPackage.ps1```
+ - Debug a package ```Get-AppxPackageExt *Cloud* | Debug-AppxPackage -OnLaunch "C:\debuggers\windbg.exe"```
 
 Updates to builtin commands:
- - Additional properties on ```Get-AppxPackage.ps1``` results
- - Force install of existing packages and get package object results from ```Add-AppxPackage.ps1```
+ - Additional properties on ```Get-AppxPackageExt.ps1``` results
+ - Force install of existing packages and get package object results from ```Add-AppxPackageExt.ps1```
 
 ## Install
 
@@ -20,9 +20,9 @@ Extract the contents of the [AppxUtilties.zip](https://david-risney.github.io/Ap
 
 ### Query running process package info
 
-Unforunately there's no builtin cmdlet or command line executable that can tell you the PackageFamilyName of a process. AppxUtilities makes a ProcessIdToPackageId.exe, Get-ProcessPackageFamilyName.ps1, and pspfn.ps1.
+Unforunately there's no builtin cmdlet or command line executable that can tell you the PackageFamilyName of a process. AppxUtilities makes a ProcessIdToPackageId.exe, Get-ProcessAppxPackage.ps1, and pspfn.ps1.
 
-    PS C:\Users\Dave> ps | Get-ProcessPackageFamilyName.ps1 | where PackageFamilyName -match Bing
+    PS C:\Users\Dave> ps | Get-ProcessAppxPackage.ps1 | where PackageFamilyName -match Bing
     
     Handles  NPM(K)    PM(K)      WS(K) VM(M)   CPU(s)     Id ProcessName                                                  
     -------  ------    -----      ----- -----   ------     -- -----------                                                  
@@ -43,7 +43,7 @@ Unforunately there's no builtin cmdlet or command line executable that can tell 
 
 ### Query installed package info
 
-The AppxUtilities Get-AppxPackage.ps1 provides a few more properties for each AppxPackage object including the following:
+The AppxUtilities Get-AppxPackageExt.ps1 provides a few more properties for each AppxPackage object including the following:
 
  - Provides the manifest as parsed XML.
  - Provides the InstallLocation as a file item.
@@ -51,7 +51,7 @@ The AppxUtilities Get-AppxPackage.ps1 provides a few more properties for each Ap
 
 For example:
 
-    PS C:\Users\Dave> Get-AppxPackage.ps1 *Cloud*
+    PS C:\Users\Dave> Get-AppxPackageExt.ps1 *Cloud*
     
     
     Name                : 58823DavidRisney.CloudShare
@@ -98,7 +98,7 @@ Obtain package info from an appx file. If its installed it returns the installed
 
 There's also no builtin cmdlet or executable to launch from the command line a Windows Store app by package name. AppxUtilities makes Launch-AppxPackage.
 
-    PS C:\Users\Dave> Get-AppxPackage *Cloud* | Launch-AppxPackage.ps1
+    PS C:\Users\Dave> Get-AppxPackageExt *Cloud* | Launch-AppxPackage.ps1
     
     PackageFullName                                                              Id Name
     ---------------                                                              -- ----
@@ -106,14 +106,14 @@ There's also no builtin cmdlet or executable to launch from the command line a W
 
 ### Add a package
 
-The AppxUtilities Add-AppxPackage.ps1 has the following abilities beyond what the builtin Add-AppxPackage performs:
+The AppxUtilities Add-AppxPackageExt.ps1 has the following abilities beyond what the builtin Add-AppxPackage performs:
 
  - Install a package with the exact same package identity using the -Force switch.
  - Know the package info of what was just installed using the -PassThru switch.
 
 For example:
 
-    PS C:\Users\Dave> Add-AppxPackage.ps1 .\App.appx
+    PS C:\Users\Dave> Add-AppxPackageExt.ps1 .\App.appx
     add-appxpackage : Deployment failed with HRESULT: 0x80073CFB, The provided package is already installed, and
     reinstallation of the package was blocked. Check the AppXDeployment-Server event log for details.
     Deployment of package f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6_1.0.0.0_neutral__tbz3402trp7yy was blocked because the
@@ -122,14 +122,14 @@ For example:
     installing this package.
     NOTE: For additional information, look for [ActivityId] 431a2ff7-7193-0001-d850-1f439371cf01 in the Event Log or use
     the command line Get-AppxLog -ActivityID 431a2ff7-7193-0001-d850-1f439371cf01
-    At C:\users\dave\development\appxutilities\bin\Add-AppxPackage.ps1:15 char:16
+    At C:\users\dave\development\appxutilities\bin\Add-AppxPackageExt.ps1:15 char:16
     +     $lastError = (add-appxpackage $Path 2>&1);
     +                   ~~~~~~~~~~~~~~~~~~~~~~~~~~
         + CategoryInfo          : ResourceExists: (C:\Users\Dave\App.appx:String) [Add-AppxPackage], PSInvalidOperationExc
        eption
         + FullyQualifiedErrorId : DeploymentError,Microsoft.Windows.Appx.PackageManager.Commands.AddAppxPackageCommand
     
-    PS C:\Users\Dave> Add-AppxPackage.ps1 .\App.appx -Force -PassThru
+    PS C:\Users\Dave> Add-AppxPackageExt.ps1 .\App.appx -Force -PassThru
     
     
     Name              : f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6
@@ -153,7 +153,7 @@ This depends on [PLMDebug.exe](http://msdn.microsoft.com/en-us/library/windows/h
 
 Attach a debugger to a package the next time it is run:
 
-    PS C:\Users\Dave> Get-AppxPackage *Cloud* | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe -server tcp:port=9090"
+    PS C:\Users\Dave> Get-AppxPackageExt *Cloud* | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe -server tcp:port=9090"
     
     
     Name                : 58823DavidRisney.CloudShare
@@ -178,7 +178,7 @@ Attach a debugger to a currently running package:
 
 Turn off debugging a package:
 
-    PS C:\Users\Dave> Get-AppxPackage *BingF* | Debug-AppxPackage.ps1 -Off
+    PS C:\Users\Dave> Get-AppxPackageExt *BingF* | Debug-AppxPackage.ps1 -Off
 
 
     Name                : Microsoft.BingFinance
@@ -199,7 +199,7 @@ Turn off debugging a package:
 
 Install and launch a package under the debugger.
 
-    Add-AppxPackage.ps1 .\App.appx -PassThru | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe" | Launch-AppxPackage;
+    Add-AppxPackageExt.ps1 .\App.appx -PassThru | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe" | Launch-AppxPackage;
 
 Uninstall a package based on its file.
 
