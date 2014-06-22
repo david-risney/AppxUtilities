@@ -8,6 +8,7 @@ Copy-Item -Force ExtractFromAppx/bin/Release/ExtractFromAppx.exe bin
 Copy-Item -Force ExtractFromAppx/bin/Release/ExtractFromAppx.pdb bin
 Copy-Item -Force Script/*.ps1 bin
 dir bin\*.ps1 | %{ Copy-Item CmdWrapper\CmdWrapper.cmd $_.fullname.replace(".ps1", ".cmd"); }
+Copy-Item -Force Redist\* bin
 pushd bin
 zip ..\AppxUtilities.zip *
 popd
