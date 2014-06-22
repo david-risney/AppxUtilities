@@ -1,6 +1,10 @@
 param([object[]] $PackagePath);
 
-$myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path))
+$myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
+function ScriptDir($additional) {
+	 $myPath + "\" + $additional;
+}
+
 
 $PackagePath + $input | ?{ $_ } | %{
 	$path = $_;
@@ -8,8 +12,8 @@ $PackagePath + $input | ?{ $_ } | %{
 		$path = $path.FullName;
 	}
 
-	$manifestAsXml = [xml](.($myPath + "\ExtractFromAppx.exe") $path "AppxManifest.xml");
-	$installedPackages = .($myPath + "\Get-AppxPackage.ps1") $manifestAsXml.Package.Identity.Name;
+	$manifestAsXml = [xml](.(ScriptDir("\ExtractFromAppx.exe")) $path "AppxManifest.xml");
+	$installedPackages = .(ScriptDir("\Get-AppxPackageExt.ps1")) $manifestAsXml.Package.Identity.Name;
 
 	if ($installedPackages) {
 		$installedPackages;

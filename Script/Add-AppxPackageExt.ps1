@@ -1,8 +1,12 @@
 param([object[]] $Paths,
-    [switch] $Force,
-    [switch] $PassThru);
+	[switch] $Force);
 
 $PackagesAdded = @();
+
+$myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
+function ScriptDir($additional) {
+	 $myPath + "\" + $additional;
+}
 
 $Paths + $input | %{
 	$Path = $_;
@@ -10,15 +14,15 @@ $Paths + $input | %{
 		$Path = $Path.FullName;
 	}
 
-	$before = get-appxpackage;
+	$before = .(ScriptDir("Get-AppxPackageExt.ps1"));
 
-	$lastError = (add-appxpackage $Path 2>&1);
+	$lastError = (Add-AppxPackage $Path 2>&1);
 
 	if ($lastError -and ($error.CategoryInfo.Category -eq "ResourceExists") -and $Force) {
 		$errorPrefix = "Deployment of package ";
 		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
 			remove-appxpackage $_
-			$before = get-appxpackage;
+			$before = .(ScriptDir("Get-AppxPackageExt.ps1"));
 			add-appxpackage $Path;
 		}
 	}
@@ -26,11 +30,9 @@ $Paths + $input | %{
 		$lastError;
 	}
 
-	$after = get-appxpackage;
+	$after = .(ScriptDir("Get-AppxPackageExt.ps1"));
 
 	$PackagesAdded += @(diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject })
 }
 
-if ($PassThru) {
-	$PackagesAdded;
-}
+$PackagesAdded;

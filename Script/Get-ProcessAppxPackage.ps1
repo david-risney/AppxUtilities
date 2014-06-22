@@ -1,7 +1,11 @@
-begin {}
+begin {
+	$myPath = Split-Path -Parent ($MyInvocation.MyCommand.Path);
+	function ScriptDir($additional) {
+		$myPath + "\" + $additional;
+	}
+}
 process {
-	$processIdToPackageId = ((Split-Path -Parent ($MyInvocation.MyCommand.Path)) + "\ProcessIdToPackageId.exe");
-	$pfn = (.$processIdToPackageId $_.Id).Split("`t")[1];
+	$pfn = (.(ScriptDir("\ProcessIdToPackageId.exe")) $_.Id).Split("`t")[1];
 	$_ | Add-Member PackageFullName $pfn;
 
 	$_;

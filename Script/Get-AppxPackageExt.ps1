@@ -28,14 +28,14 @@ $packages | %{
 		$applicationIds = @() + $applicationIds; # Make sure its an array even if there's only one element.
 	}
 
-    ($_ `
-        | add-member AppxPackage $_ -PassThru `
-        | add-member DisplayName $displayName -PassThru `
-        | add-member ApplicationIds $applicationIds -PassThru `
-        | add-member InstallLocationItem $installLocationItem -PassThru `
-        | add-member Manifest $manifestAsXml -PassThru `
-        | add-member InstallTimeUtc $installTimeUtc
-        );
+	($_ `
+		| add-member AppxPackage $_ -PassThru `
+		| add-member DisplayName $displayName -PassThru `
+		| add-member ApplicationIds $applicationIds -PassThru `
+		| add-member InstallLocationItem $installLocationItem -PassThru `
+		| add-member Manifest $manifestAsXml -PassThru `
+		| add-member InstallTimeUtc $installTimeUtc
+		);
 
-    $_ | select AppxPackage,Name,DisplayName,PackageFullName,ApplicationIds,Manifest,InstallLocationItem,InstallTimeUtc;
+	$_ | select AppxPackage,Name,DisplayName,PackageFullName,ApplicationIds,Manifest,InstallLocationItem,InstallTimeUtc;
 }

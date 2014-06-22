@@ -1,31 +1,37 @@
 param([object[]] $PackageFullNames,
-    [string] $OnLaunch,
+	[string] $OnLaunch,
 	[string] $On,
-    [switch] $Off)
+	[switch] $Off)
+
+$myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
+function ScriptDir($additional) {
+	 $myPath + "\" + $additional;
+}
+
 
 $PackageFullNames + $input | %{
 	$PackageFullName = $_;
 	$ProcessId = $null;
+
 	if ($PackageFullName.GetType() -ne "string") {
 		$ProcessId = $PackageFullName.Id;
 		$PackageFullName = $PackageFullName.PackageFullName;
 	}
 
-    if ($Off) {
-        [void](plmdebug /disableDebug $PackageFullName); 
-    }
-    else {
+	if ($Off) {
+		[void](.(ScriptDir("plmdebug.exe")) /disableDebug $PackageFullName); 
+	}
+	else {
 		if ($OnLaunch) {
-			[void](plmdebug /enableDebug $PackageFullName $OnLaunch);
+			[void](.(ScriptDir("plmdebug.exe")) /enableDebug $PackageFullName $OnLaunch);
 		}
 		else {
-			[void](plmdebug /enableDebug $PackageFullName);
+			[void](.(ScriptDir("plmdebug.exe")) /enableDebug $PackageFullName);
 			if ($On -and $ProcessId) {
 				.$On -p $ProcessId;
 			}
 		}
-    }
+	}
 
-	$myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
-	.($myPath + "\Get-AppxPackage.ps1") | where PackageFullName -match $PackageFullName;
+	.(ScriptDir("Get-AppxPackageExt.ps1")) | where PackageFullName -match $PackageFullName;
 }
