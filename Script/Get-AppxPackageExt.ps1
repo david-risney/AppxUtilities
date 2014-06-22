@@ -1,6 +1,7 @@
-param([string] $Filter);
+param([string] $Filter,
+	[switch] $MergeType);
 
-$packages = ($input | %{ $_; });
+$packages = ($input | %{ $_; } | ?{ $_; });
 
 if (!$packages) {
 	if ($Filter) {
@@ -28,14 +29,22 @@ $packages | %{
 		$applicationIds = @() + $applicationIds; # Make sure its an array even if there's only one element.
 	}
 
-	($_ `
-		| add-member AppxPackage $_ -PassThru `
-		| add-member DisplayName $displayName -PassThru `
-		| add-member ApplicationIds $applicationIds -PassThru `
-		| add-member InstallLocationItem $installLocationItem -PassThru `
-		| add-member Manifest $manifestAsXml -PassThru `
-		| add-member InstallTimeUtc $installTimeUtc
+	$appxPackage = $_;
+	$outputObject = $_;
+	if (!$MergeType) {
+		$outputObject = New-Object PSObject `
+			| Add-Member PackageFullName $appxPackage.PackageFullName -PassThru `
+			| Add-Member Package $appxPackage -PassThru `
+		;
+	}
+
+	($outputObject `
+		| Add-Member DisplayName $displayName -PassThru `
+		| Add-Member ApplicationIds $applicationIds -PassThru `
+		| Add-Member InstallLocationItem $installLocationItem -PassThru `
+		| Add-Member Manifest $manifestAsXml -PassThru `
+		| Add-Member InstallTimeUtc $installTimeUtc
 		);
 
-	$_ | select AppxPackage,Name,DisplayName,PackageFullName,ApplicationIds,Manifest,InstallLocationItem,InstallTimeUtc;
+	$outputObject;
 }

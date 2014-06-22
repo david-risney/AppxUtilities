@@ -1,5 +1,6 @@
 param([object[]] $Paths,
-	[switch] $Force);
+	[switch] $Force,
+	[switch] $MergeType);
 
 $PackagesAdded = @();
 
@@ -14,23 +15,26 @@ $Paths + $input | %{
 		$Path = $Path.FullName;
 	}
 
-	$before = .(ScriptDir("Get-AppxPackageExt.ps1"));
+	$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType;
 
 	$lastError = (Add-AppxPackage $Path 2>&1);
 
 	if ($lastError -and ($error.CategoryInfo.Category -eq "ResourceExists") -and $Force) {
 		$errorPrefix = "Deployment of package ";
 		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
-			remove-appxpackage $_
-			$before = .(ScriptDir("Get-AppxPackageExt.ps1"));
-			add-appxpackage $Path;
+			Remove-AppxPackage $_
+			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType;
+			Add-AppxPackage $Path;
 		}
 	}
 	elseif ($lastError) {
 		$lastError;
 	}
 
-	$after = .(ScriptDir("Get-AppxPackageExt.ps1"));
+	$after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType;
+
+	$before = @() + $before;
+	$after = @() + $after;
 
 	$PackagesAdded += @(diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject })
 }

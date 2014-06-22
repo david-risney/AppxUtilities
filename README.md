@@ -109,7 +109,7 @@ There's also no builtin cmdlet or executable to launch from the command line a W
 The AppxUtilities Add-AppxPackageExt.ps1 has the following abilities beyond what the builtin Add-AppxPackage performs:
 
  - Install a package with the exact same package identity using the -Force switch.
- - Know the package info of what was just installed using the -PassThru switch.
+ - Know the package info of what was just installed.
 
 For example:
 
@@ -129,7 +129,7 @@ For example:
        eption
         + FullyQualifiedErrorId : DeploymentError,Microsoft.Windows.Appx.PackageManager.Commands.AddAppxPackageCommand
     
-    PS C:\Users\Dave> Add-AppxPackageExt.ps1 .\App.appx -Force -PassThru
+    PS C:\Users\Dave> Add-AppxPackageExt.ps1 .\App.appx -Force
     
     
     Name              : f0c4e9e7-162f-4c33-a9b1-4faf67cf68a6
@@ -199,7 +199,7 @@ Turn off debugging a package:
 
 Install and launch a package under the debugger.
 
-    Add-AppxPackageExt.ps1 .\App.appx -PassThru | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe" | Launch-AppxPackage;
+    Add-AppxPackageExt.ps1 .\App.appx | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe" | Launch-AppxPackage;
 
 Uninstall a package based on its file.
 

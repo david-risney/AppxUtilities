@@ -1,7 +1,8 @@
 param([object[]] $PackageFullNames,
 	[string] $OnLaunch,
 	[string] $On,
-	[switch] $Off)
+	[switch] $Off,
+	[switch] $MergeType)
 
 $myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
 function ScriptDir($additional) {
@@ -33,5 +34,5 @@ $PackageFullNames + $input | %{
 		}
 	}
 
-	.(ScriptDir("Get-AppxPackageExt.ps1")) | where PackageFullName -match $PackageFullName;
+	.(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType | where PackageFullName -match $PackageFullName;
 }

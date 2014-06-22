@@ -1,5 +1,6 @@
 param([string] $PackageFamilyName,
-	[string] $ApplicationId);
+	[string] $ApplicationId,
+	[switch] $MergeType);
 
 $myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
 function ScriptDir($additional) {
@@ -23,7 +24,7 @@ $input + $ApplicationUserModelId | %{
 	$processId = (.(ScriptDir("\LaunchAppxPackage.exe")) $aumi 2>&1);
 	try {
 		$processId = [int]$processId;
-		.(ScriptDir("\pspfn.ps1")) $processId;
+		.(ScriptDir("Get-ProcessAppxPackage.ps1")) -MergeType:$MergeType $processId;
 	}
 	catch {
 		throw $processId 
