@@ -2,29 +2,35 @@ param([string] $PackageFamilyName,
 	[string] $ApplicationId,
 	[switch] $MergeType);
 
+$merge = !!$MergeType;
+
 $myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
 function ScriptDir($additional) {
 	 $myPath + "\" + $additional;
 }
 
+$ApplicationUserModelId = "";
+if ($PackageFamilyName -and $ApplicationId) {
+	$ApplicationUserModelId = $PackageFamilyName + "!" + $ApplicationId;
+}
 
-$ApplicationUserModelId = $PackageFamilyName + "!" + $ApplicationId;
+$allInput = @($input | %{ $_; }) + @($ApplicationUserModelId) | ?{ $_; };
 
-$input + $ApplicationUserModelId | %{
+$allInput | %{ 
+	$in = $_;
 	# Upgrade results from builtin Get-AppxPackage to results from AppxUtilities Get-AppxPackage.ps1
-	if ($_.PackageFamilyName -and !$_.ApplicationIds) {
-		$_ | .(ScriptDir("\Get-AppxPackageExt.ps1"))
+	if ($in.PackageFullName -and !($in.PackageFamilyName -and !$in.ApplicationIds)) {
+		$in = Get-AppxPackage | where PackageFullName -match $in.PackageFullName | .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType;
 	}
-} | %{
-	$aumi = $_;
+
+	$aumi = $in;
 	if ($aumi.GetType().Name -ne "string") {
-		$aumi = $_.PackageFamilyName + "!" + $_.ApplicationIds[0];
+		$aumi = $in.PackageFamilyName + "!" + $in.ApplicationIds[0];
 	}
-	$launchAppxPackage = $myPath + "\LaunchAppxPackage.exe";
-	$processId = (.(ScriptDir("\LaunchAppxPackage.exe")) $aumi 2>&1);
+	$processId = (.(ScriptDir("LaunchAppxPackage.exe")) $aumi 2>&1);
 	try {
 		$processId = [int]$processId;
-		.(ScriptDir("Get-ProcessAppxPackage.ps1")) -MergeType:$MergeType $processId;
+		.(ScriptDir("Get-ProcessAppxPackage.ps1")) $processId -MergeType:$merge ;
 	}
 	catch {
 		throw $processId 

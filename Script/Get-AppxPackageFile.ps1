@@ -1,6 +1,8 @@
 param([object[]] $PackagePath,
 	[switch] $MergeType);
 
+$merge = !!$MergeType;
+
 $myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
 function ScriptDir($additional) {
 	 $myPath + "\" + $additional;
@@ -14,7 +16,7 @@ $PackagePath + $input | ?{ $_ } | %{
 	}
 
 	$manifestAsXml = [xml](.(ScriptDir("\ExtractFromAppx.exe")) $path "AppxManifest.xml");
-	$installedPackages = .(ScriptDir("\Get-AppxPackageExt.ps1")) -MergeType:$MergeType $manifestAsXml.Package.Identity.Name;
+	$installedPackages = .(ScriptDir("\Get-AppxPackageExt.ps1")) -MergeType:$merge $manifestAsXml.Package.Identity.Name;
 
 	if ($installedPackages) {
 		$installedPackages;

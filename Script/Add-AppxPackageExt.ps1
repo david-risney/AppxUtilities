@@ -4,6 +4,8 @@ param([object[]] $Paths,
 
 $PackagesAdded = @();
 
+$merge = !!$MergeType;
+
 $myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
 function ScriptDir($additional) {
 	 $myPath + "\" + $additional;
@@ -15,7 +17,7 @@ $Paths + $input | %{
 		$Path = $Path.FullName;
 	}
 
-	$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType;
+	$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
 
 	$lastError = (Add-AppxPackage $Path 2>&1);
 
@@ -23,7 +25,7 @@ $Paths + $input | %{
 		$errorPrefix = "Deployment of package ";
 		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
 			Remove-AppxPackage $_
-			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType;
+			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
 			Add-AppxPackage $Path;
 		}
 	}
@@ -31,7 +33,7 @@ $Paths + $input | %{
 		$lastError;
 	}
 
-	$after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType;
+	$after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
 
 	$before = @() + $before;
 	$after = @() + $after;

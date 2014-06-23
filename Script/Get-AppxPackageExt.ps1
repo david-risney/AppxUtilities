@@ -1,6 +1,8 @@
 param([string] $Filter,
 	[switch] $MergeType);
 
+$merge = !!$MergeType;
+
 $packages = ($input | %{ $_; } | ?{ $_; });
 
 if (!$packages) {
@@ -31,7 +33,7 @@ $packages | %{
 
 	$appxPackage = $_;
 	$outputObject = $_;
-	if (!$MergeType) {
+	if (!$merge) {
 		$outputObject = New-Object PSObject `
 			| Add-Member PackageFullName $appxPackage.PackageFullName -PassThru `
 			| Add-Member Package $appxPackage -PassThru `

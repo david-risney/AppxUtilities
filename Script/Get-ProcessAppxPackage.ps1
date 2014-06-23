@@ -2,6 +2,8 @@ param([string] $ProcessFilter,
 	[switch] $MergeType,
 	[switch] $All);
 
+$merge = !!$MergeType;
+
 $myPath = Split-Path -Parent ($MyInvocation.MyCommand.Path);
 function ScriptDir($additional) {
 	$myPath + "\" + $additional;
@@ -17,13 +19,13 @@ $allInput | %{
 	$package = $null;
 	$packageState = $null;
 	if ($pfn) {
-		$package = (.(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$MergeType) | ?{ $_.PackageFullName -match $pfn };
+		$package = (.(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge) | ?{ $_.PackageFullName -match $pfn };
 		$packageState = (.(ScriptDir("PackageExecutionState.exe")) /get $pfn);
 	}
 
 	$process = $_;
 	$outputObject = $_;
-	if (!$MergeType) {
+	if (!$merge) {
 		$outputObject = New-Object PSObject `
 			| Add-Member Id $process.Id -PassThru `
 			| Add-Member ProcessName $process.ProcessName -PassThru `
