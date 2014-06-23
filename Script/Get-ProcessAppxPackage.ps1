@@ -1,13 +1,18 @@
-param([switch] $MergeType,
+param([string] $Filter,
+	[switch] $MergeType,
 	[switch] $All);
 
-begin {
-	$myPath = Split-Path -Parent ($MyInvocation.MyCommand.Path);
-	function ScriptDir($additional) {
-		$myPath + "\" + $additional;
-	}
+$myPath = Split-Path -Parent ($MyInvocation.MyCommand.Path);
+function ScriptDir($additional) {
+	$myPath + "\" + $additional;
 }
-process {
+
+$allInput = ($input | %{ $_; } | ?{ $_; });
+if (!$allInput) {
+	$allInput = (Get-Process);
+}
+
+$allInput | %{
 	$pfn = (.(ScriptDir("ProcessIdToPackageId.exe")) $_.Id).Split("`t")[1];
 	$package = $null;
 	$packageState = $null;
@@ -32,8 +37,14 @@ process {
 		| Add-Member State $packageState `
 	;
 
-	if ($All -or $package) {
+	$filterMatch = $true;
+	if ($Filter) {
+		$filterMatch = $outputObject.Id -eq $Filter -or `
+			$outputObject.ProcessName -match $Filter -or `
+			$outputObject.PackageFullName -match $Filter;
+	}
+
+	if ($All -or $package -and $filterMatch) {
 		$outputObject;
 	}
 }
-end {}
