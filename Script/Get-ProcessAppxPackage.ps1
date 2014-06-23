@@ -1,4 +1,4 @@
-param([string] $Filter,
+param([string] $ProcessFilter,
 	[switch] $MergeType,
 	[switch] $All);
 
@@ -38,13 +38,13 @@ $allInput | %{
 	;
 
 	$filterMatch = $true;
-	if ($Filter) {
-		$filterMatch = $outputObject.Id -eq $Filter -or `
-			$outputObject.ProcessName -match $Filter -or `
-			$outputObject.PackageFullName -match $Filter;
+	if ($ProcessFilter) {
+		$filterMatch = ($outputObject.Id -eq $ProcessFilter) -or `
+			($outputObject.ProcessName -match $ProcessFilter) -or `
+			($outputObject.PackageFullName -match $ProcessFilter);
 	}
 
-	if ($All -or $package -and $filterMatch) {
+	if (($All -or $package) -and $filterMatch) {
 		$outputObject;
 	}
 }
