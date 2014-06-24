@@ -46,7 +46,7 @@ $allInput | %{
 			($outputObject.PackageFullName -match $ProcessFilter);
 	}
 
-	if (($All -or $package) -and $filterMatch) {
+	if (($ProcessFilter -and $filterMatch) -or (!$ProcessFilter -and ($All -or $package))) {
 		$outputObject;
 	}
 }
