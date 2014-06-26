@@ -10,13 +10,16 @@ Fill in functionality gaps for Windows Store AppX package PowerShell commands.
 
 ## Commands
 
- - Running process package info ```Get-ProcessAppxPackage wwahost```
- - Appx package file to package info ```dir *appx | Get-AppxPackageFile```
+ - Process package info ```Get-ProcessAppxPackage wwahost```
+ - Appx file to package info ```dir *appx | Get-AppxPackageFile```
  - Launch an app from a package info ```Get-AppxPackageExt *Skype* | Launch-AppxPackage```
- - Suspend, resume, or terminate an app from a package info ```Get-AppxPackageExt *Skype* | Suspend-AppxPackage```
  - Debug a package ```Get-AppxPackageExt *Cloud* | Debug-AppxPackage -OnLaunch "C:\debuggers\windbg.exe"```
- - Additional package info properties ```Get-AppxPackageExt.ps1```
+ - Get more package info ```Get-AppxPackageExt.ps1```
  - Add appx package with force override and resulting package info ```Add-AppxPackageExt.ps1 *appx -Force```
+ - Launch a background task for an appx package ```Get-AppxPackageExt *Skype* | Launch-AppxPackageBackgroundTask```
+ - Suspend a running appx package process ```Get-AppxPackageExt *Skype* | Suspend-AppxPackage```
+ - Resume a running appx package process ```Get-ProcessAppxPackage *Skype* | Resume-AppxPackage```
+ - Terminate a running appx package process ```Get-ProcessAppxPackage *Skype* | Terminate-AppxPackage```
 
 ### Query running process package info
 
@@ -96,7 +99,7 @@ Get the package info from an appx file. If the package contained in the appx fil
     InstallTimeUtc      : 6/26/2014 2:53:15 PM
 
 
-### Launch a package
+### Launch a packaged application
 
 AppxUtilities makes Launch-AppxPackage.ps1 which launches Appx packaged applications. Provided with a package it will launch the first application in the package. Provided with a PackageFamilyName and ApplicationId it will launch that specific application. After launching it returns the Get-ProcessAppxPackage result for the launched process.
 
@@ -105,6 +108,27 @@ AppxUtilities makes Launch-AppxPackage.ps1 which launches Appx packaged applicat
     PackageFullName               State                         ProcessName                                              Id
     ---------------               -----                         -----------                                              --
     Microsoft.SDKSamples.Backg... running                       WWAHost                                               10604
+
+
+### Launch a packaged application's background task
+
+AppxUtilities lets you enumerate and launch the registered background tasks of an Appx application. Use the BackgroundTasks property of the Get-AppxPackageExt results to see available registered background tasks per Appx package. And use Launch-AppxPackageBackgroundTask to start a background task. Launch-AppxPackageBackgroundTask takes as input a package in which case it runs the first registered background task, or a background task property from a Get-AppxPackageExt result, or a GUID string that is the registered background task property.
+
+    PS C:\Users\Dave> Get-AppxPackageExt *BackgroundTask*
+    
+    
+    PackageFullName     : Microsoft.SDKSamples.BackgroundTask.JS_1.0.0.0_neutral__8wekyb3d8bbwe
+    DisplayName         : BackgroundTask JS sample
+    InstallLocationItem : C:\Program
+                          Files\WindowsApps\Microsoft.SDKSamples.BackgroundTask.JS_1.0.0.0_neutral__8wekyb3d8bbwe
+    Manifest            : #document
+    ApplicationIds      : {App}
+    BackgroundTasks     : {@{Name=SampleJavaScriptBackgroundTask; Id={A2D67B9C-80A3-4C0D-877D-10AE2915E597}}}
+    InstallTimeUtc      : 6/26/2014 4:27:12 PM
+    
+    
+    
+    PS C:\Users\Dave> Get-AppxPackageExt *BackgroundTask* | Launch-AppxPackageBackgroundTask
 
 
 ### Add a package
@@ -191,6 +215,32 @@ Turn off debugging a package:
     ApplicationIds      : {App}
     BackgroundTasks     : {}
     InstallTimeUtc      : 6/26/2014 3:14:11 PM
+
+
+### Suspend, Resume, and Terminate
+
+Use the Suspend-AppxPackage, Resume-AppxPackage, and Terminate-AppxPackage to suspend, resume, and terminate respectively running appx package processes. 
+Takes as input the result of Get-AppxPackageExt or Get-ProcessAppxPackage and provides as output the Get-ProcessAppxPackage result of the targetted processes.
+
+    PS C:\Users\Dave> Get-ProcessAppxPackage livecomm
+    
+    PackageFullName               State                         ProcessName                                              Id
+    ---------------               -----                         -----------                                              --
+    microsoft.windowscommunica... suspended                     livecomm                                              11516
+    
+    
+    PS C:\Users\Dave> Get-ProcessAppxPackage livecomm | Resume-AppxPackage
+    
+    PackageFullName               State                         ProcessName                                              Id
+    ---------------               -----                         -----------                                              --
+    microsoft.windowscommunica... running                       livecomm                                              11516
+    
+    
+    PS C:\Users\Dave> Get-ProcessAppxPackage livecomm | Suspend-AppxPackage
+    
+    PackageFullName               State                         ProcessName                                              Id
+    ---------------               -----                         -----------                                              --
+    microsoft.windowscommunica... suspended                     livecomm                                              11516
 
 
 ## Interacting with existing Appx commands
