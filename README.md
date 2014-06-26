@@ -4,11 +4,13 @@ Fill in functionality gaps for Windows Store AppX package PowerShell commands.
 
 ## Install
 
- - Extract the contents of the [AppxUtilties.zip](https://david-risney.github.io/AppxUtilities/AppxUtilities.zip) file into a temporary directory. 
+ - Extract the contents of [AppxUtilties.zip](https://david-risney.github.io/AppxUtilities/AppxUtilities.zip) into a temporary directory. 
  - Open a new PowerShell prompt, cd to the temporary directory, and run ```Unblock-File *```. 
  - Move the files to somewhere in your PATH.
 
 ## Commands
+
+AppxUtilities provides the following commands:
 
  - Process package info ```Get-ProcessAppxPackage wwahost```
  - Appx file to package info ```dir *appx | Get-AppxPackageFile```
@@ -277,9 +279,13 @@ Because these scripts return their own types existing commands like Get-AppxPack
 
 Install and launch a package under the debugger.
 
-    Add-AppxPackageExt.ps1 .\App.appx | Debug-AppxPackage.ps1 -OnLaunch "C:\debuggers\windbg.exe" | Launch-AppxPackage;
+    Add-AppxPackageExt .\App.appx | Debug-AppxPackage -OnLaunch "C:\debuggers\windbg.exe -server tcp:port=9100 -g -G -o" | Launch-AppxPackage;
 
 Uninstall a package based on its file.
 
-    (Get-AppxPackageFile.ps1 .\App.appx).AppxPackage | Remove-AppxPackage;
+    Get-AppxPackageFile .\App.appx -Merge | Remove-AppxPackage;
+
+Resume all suspended apps.
+
+    Get-ProcessAppxPackage | where State -eq suspended | Resume-AppxPackage
 
