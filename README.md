@@ -193,6 +193,33 @@ Turn off debugging a package:
     InstallTimeUtc      : 6/26/2014 3:14:11 PM
 
 
+## Interacting with existing Appx commands
+
+Because these scripts return their own types existing commands like Get-AppxPackage or Remove-AppxPackage don't work with them. To fix this you can use the ```-Merge``` on any of the AppxUtilities commands. This will add the AppxUtility properties to the original AppxPackage or Process object rather than creatings its own. In this way you can use the output of AppxUtility commands with existing Appx PowerShell commands, but the AppxUtilities properties won't be displayed.
+
+    C:\Users\Dave> Get-AppxPackageExt.ps1 *BackgroundTask* -Merge
+    
+    
+    Name              : Microsoft.SDKSamples.BackgroundTask.JS
+    Publisher         : CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US
+    Architecture      : Neutral
+    ResourceId        :
+    Version           : 1.0.0.0
+    PackageFullName   : Microsoft.SDKSamples.BackgroundTask.JS_1.0.0.0_neutral__8wekyb3d8bbwe
+    InstallLocation   : C:\Program Files\WindowsApps\Microsoft.SDKSamples.BackgroundTask.JS_1.0.0.0_neutral__8wekyb3d8bbwe
+    IsFramework       : False
+    PackageFamilyName : Microsoft.SDKSamples.BackgroundTask.JS_8wekyb3d8bbwe
+    PublisherId       : 8wekyb3d8bbwe
+    IsResourcePackage : False
+    IsBundle          : False
+    IsDevelopmentMode : False
+    Dependencies      : {Microsoft.WinJS.2.0_1.0.9600.17018_neutral__8wekyb3d8bbwe}
+    
+    
+    
+    C:\Users\Dave> Get-AppxPackageExt.ps1 *BackgroundTask* -Merge | Remove-AppxPackage
+
+
 ## Combined examples
 
 Install and launch a package under the debugger.
