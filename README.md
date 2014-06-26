@@ -4,7 +4,9 @@ Fill in functionality gaps for Windows Store AppX package PowerShell commands.
 
 ## Install
 
-Extract the contents of the [AppxUtilties.zip](https://david-risney.github.io/AppxUtilities/AppxUtilities.zip) file into a temporary directory. Open a new PowerShell prompt, cd to the temporary directory, and run ```Unblock-File *```. Move the files to somewhere in your PATH.
+ - Extract the contents of the [AppxUtilties.zip](https://david-risney.github.io/AppxUtilities/AppxUtilities.zip) file into a temporary directory. 
+ - Open a new PowerShell prompt, cd to the temporary directory, and run ```Unblock-File *```. 
+ - Move the files to somewhere in your PATH.
 
 ## Commands
 
@@ -46,7 +48,6 @@ The AppxUtilities Get-AppxPackageExt.ps1 provides a few more properties for each
  - InstallLocation as a file item.
  - Contained Application IDs.
  - Registered background tasks.
-
 
     PS C:\Users\Dave> Get-AppxPackageExt.ps1 *Skype*
     
@@ -112,6 +113,7 @@ The AppxUtilities Add-AppxPackageExt.ps1 has the following abilities beyond what
 
  - Install a package with the exact same package identity using the -Force switch.
  - Return the Get-AppxPackageExt package objects of what was just installed.
+
 
     PS C:\Users\Dave> Add-AppxPackageExt .\BackgroundTask2.appx
     Add-AppxPackage : Deployment failed with HRESULT: 0x80073CFB, The provided package is already installed, and
