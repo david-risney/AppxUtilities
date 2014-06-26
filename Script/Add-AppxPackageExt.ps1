@@ -21,17 +21,32 @@ $Paths + $input | %{
 
 	$lastError = (Add-AppxPackage $Path 2>&1);
 
-	if ($lastError -and ($error.CategoryInfo.Category -eq "ResourceExists") -and $Force) {
-		$errorPrefix = "Deployment of package ";
-		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
-			Remove-AppxPackage $_
-			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
-			Add-AppxPackage $Path;
-		}
-	}
-	elseif ($lastError) {
-		$lastError;
-	}
+    if ($lastError -and $Force) {
+    	if ($error.CategoryInfo.Category -eq "ResourceExists") {
+    		$errorPrefix = "Deployment of package ";
+    		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
+    			Remove-AppxPackage $_
+    			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
+    			Add-AppxPackage $Path;
+    		}
+    	}
+        elseif ($lastError.Exception -and `
+            $lastError.Exception.InnerException -and `
+            $lastError.Exception.InnerException.Message -eq "error 0x800B0109: The root certificate of the signature in the app package or bundle must be trusted.") {
+    
+            $certPath = $env:TEMP + "\Add-AppxPackageExt.tmp.cer";
+            [System.IO.File]::WriteAllBytes($certPath, (Get-AuthenticodeSignature ($Path)).SignerCertificate.Export("Cert"));
+            [void](certutil.exe -addstore TrustedPeople $certPath);
+            Add-AppxPackage $Path;
+            del $certPath;
+        }
+	    elseif ($lastError) {
+		    $lastError;
+	    }
+    }
+    else {
+        $lastError;
+    }
 
 	$after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
 
