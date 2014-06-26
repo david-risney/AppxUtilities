@@ -9,6 +9,11 @@ function ScriptDir($additional) {
 	$myPath + "\" + $additional;
 }
 
+$processAppxPackageType = "ProcessAppxPackageExtType";
+if ((Get-TypeData $processAppxPackageType) -eq $null) { 
+	Update-TypeData -TypeName $processAppxPackageType -DefaultDisplayPropertySet @("PackageFullName","State","ProcessName","Id");
+}
+
 $allInput = ($input | %{ $_; } | ?{ $_; });
 if (!$allInput) {
 	$allInput = (Get-Process);
@@ -31,6 +36,7 @@ $allInput | %{
 			| Add-Member ProcessName $process.ProcessName -PassThru `
 			| Add-Member Process $process -PassThru `
 		;
+		$outputObject.PSTypeNames.Add($processAppxPackageType);
 	}
 
 	$outputObject `

@@ -7,6 +7,11 @@ function ScriptDir($additional) {
 	 $myPath + "\" + $additional;
 }
 
+$appxPackageType = "AppxPackageExtType";
+if ((Get-TypeData $appxPackageType) -eq $null) { 
+	Update-TypeData -TypeName $appxPackageType -DefaultDisplayPropertySet @("PackageFullName","DisplayName","InstallLocationItem","Manifest","ApplicationIds","BackgroundTasks","InstallTimeUtc");
+}
+
 $packages = ($input | %{ $_; } | ?{ $_; });
 
 if (!$packages) {
@@ -51,6 +56,7 @@ $packages | %{
 			| Add-Member PackageFullName $appxPackage.PackageFullName -PassThru `
 			| Add-Member Package $appxPackage -PassThru `
 		;
+		$outputObject.PSTypeNames.Add($appxPackageType);
 	}
 
 	($outputObject `
