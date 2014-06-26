@@ -48,8 +48,8 @@ $allInput | %{
 	$filterMatch = $true;
 	if ($ProcessFilter) {
 		$filterMatch = ($outputObject.Id -eq $ProcessFilter) -or `
-			($outputObject.ProcessName -match $ProcessFilter) -or `
-			($outputObject.PackageFullName -match $ProcessFilter);
+			($outputObject.ProcessName -like $ProcessFilter) -or `
+			($outputObject.PackageFullName -like $ProcessFilter);
 	}
 
 	if (($ProcessFilter -and $filterMatch) -or (!$ProcessFilter -and ($All -or $package))) {
