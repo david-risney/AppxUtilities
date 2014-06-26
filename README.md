@@ -52,6 +52,8 @@ The AppxUtilities Get-AppxPackageExt.ps1 provides a few more properties for each
  - Contained Application IDs.
  - Registered background tasks.
 
+For example:
+
     PS C:\Users\Dave> Get-AppxPackageExt.ps1 *Skype*
     
     
@@ -138,6 +140,7 @@ The AppxUtilities Add-AppxPackageExt.ps1 has the following abilities beyond what
  - Install a package with the exact same package identity using the -Force switch.
  - Return the Get-AppxPackageExt package objects of what was just installed.
 
+For example:
 
     PS C:\Users\Dave> Add-AppxPackageExt .\BackgroundTask2.appx
     Add-AppxPackage : Deployment failed with HRESULT: 0x80073CFB, The provided package is already installed, and
