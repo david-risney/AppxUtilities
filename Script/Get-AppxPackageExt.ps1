@@ -1,3 +1,55 @@
+<#
+.SYNOPSIS
+    Get installed Appx package information.
+.DESCRIPTION
+    A wrapper for Get-AppxPackage, this script provides additional info beyond
+    Get-AppxPackage's including:
+     - DisplayName
+     - Manifest parsed as XML
+     - InstallLocation as file item
+     - Application IDs
+     - Registered background tasks
+.PARAMETER Filter
+    The filter passed to Get-AppxPackage.
+.PARAMETER MergeType
+    Usually the results output are of a custom PSObject type that cannot be
+    fed into pre-existing PowerShell Appx commands. MergeType will instead
+    use the pre-existing PowerShell types and attach new properties (that
+    will not be displayed by the existing type) to the existing types.
+.EXAMPLE
+    PS C:\Users\Dave> Get-AppxPackageExt.ps1 *Skype*
+    
+    
+    PackageFullName     : Microsoft.SkypeApp_2.8.0.1001_x86__kzf8qxf38zg5c
+    DisplayName         : Skype
+    InstallLocationItem : C:\Program Files\WindowsApps\Microsoft.SkypeApp_2.8.0.1001_x86__kzf8qxf38zg5c
+    Manifest            : #document
+    ApplicationIds      : {App}
+    BackgroundTasks     : {@{Name=userAccountStateChangedBackgroundTask; Id={516560FE-4EEE-4FDE-9017-7B7742D656C4}},
+                          @{Name=keepAliveTimerTriggerBackgroundTask; Id={47B17C4A-0953-416A-8EF0-EDFF9415E080}},
+                          @{Name=refreshChannelUriBackgroundTask; Id={BC523B83-5B2F-4F37-972C-50877A49DE7A}}}
+    InstallTimeUtc      : 5/7/2014 10:14:32 AM
+.LINK
+    Add-AppxPackageExt.ps1
+.LINK
+    Debug-AppxPackage.ps1
+.LINK
+    Get-AppxPackageExt.ps1
+.LINK
+    Get-AppxPackageFile.ps1
+.LINK
+    Get-ProcessAppxPackage.ps1
+.LINK
+    Launch-AppxPackage.ps1
+.LINK
+    Launch-AppxPackageBackgroundTask.ps1
+.LINK
+    Resume-AppxPackage.ps1
+.LINK
+    Suspend-AppxPackage.ps1
+.LINK
+    Terminate-AppxPackage.ps1
+#>
 param([string] $Filter,
 	[switch] $MergeType);
 
