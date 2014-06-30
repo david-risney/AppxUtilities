@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <appmodel.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -64,7 +65,15 @@ int __cdecl wmain(__in const int argumentsSize, __in_ecount(argc) const wchar_t 
 
 	if (argumentsSize >= argumentsSizeMinimum) {
 		for (int argumentIndex = 1; argumentIndex < argumentsSize; ++argumentIndex) {
-			showPackageInfoByProcessId(arguments[argumentIndex]);
+			if (wcscmp(arguments[argumentIndex], L"-") == 0) {
+				wstring id;
+				while (getline(wcin, id)) {
+					showPackageInfoByProcessId(id.c_str());
+				}
+			}
+			else {
+				showPackageInfoByProcessId(arguments[argumentIndex]);
+			}
 		}
 	}
 	else {

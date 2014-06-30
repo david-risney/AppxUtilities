@@ -3,6 +3,7 @@
 #include <AppxPackaging.h>
 #include <atlbase.h>
 #include <iostream>
+#include <string>
 #include <wrl.h>
 
 using namespace std;
@@ -138,6 +139,30 @@ void setPackageExecutionState(__in const wchar_t *packageFullName, __in PackageE
 	}
 }
 
+void getPackageExecutionStateInner(__in IPackageDebugSettings *packageDebugSettings, __in const wchar_t *packageFullName) {
+	PACKAGE_EXECUTION_STATE packageExecutionState = {};
+	HRESULT hr = packageDebugSettings->GetPackageExecutionState(packageFullName, &packageExecutionState);
+
+	if (SUCCEEDED(hr)) {
+		static const wchar_t * packageExecutionStateNameMap[] = {
+			L"unknown", // PES_UNKNOWN = 0
+			L"running", // PES_RUNNING = 1
+			L"suspending", // PES_SUSPENDING = 2
+			L"suspended", // PES_SUSPENDED = 3
+			L"terminated" }; // PES_TERMINATED = 4
+
+		const wchar_t *packageExecutionStateName = L"invalid";
+		if (packageExecutionState >= PES_UNKNOWN && packageExecutionState <= PES_TERMINATED) {
+			packageExecutionStateName = packageExecutionStateNameMap[packageExecutionState];
+		}
+		wcout << packageFullName << L"\t" << packageExecutionStateName << endl;
+	}
+	else {
+		wcerr << L"Error in GetPackageExecutionState 0x" << hex << hr << endl;
+	}
+
+}
+
 void getPackageExecutionState(__in const wchar_t *packageFullName) {
 	HRESULT hr = CoInitialize(nullptr);
 	if (SUCCEEDED(hr)) {
@@ -145,25 +170,14 @@ void getPackageExecutionState(__in const wchar_t *packageFullName) {
 				ComPtr<IPackageDebugSettings> packageDebugSettings;
 				HRESULT hr = CoCreateInstance(CLSID_PackageDebugSettings, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&packageDebugSettings));
 				if (SUCCEEDED(hr)) {
-					PACKAGE_EXECUTION_STATE packageExecutionState = { };
-					hr = packageDebugSettings->GetPackageExecutionState(packageFullName, &packageExecutionState);
-					
-					if (SUCCEEDED(hr)) {
-						static const wchar_t * packageExecutionStateNameMap[] = {
-							L"unknown", // PES_UNKNOWN = 0
-							L"running", // PES_RUNNING = 1
-							L"suspending", // PES_SUSPENDING = 2
-							L"suspended", // PES_SUSPENDED = 3
-							L"terminated" }; // PES_TERMINATED = 4
-
-						const wchar_t *packageExecutionStateName = L"invalid";
-						if (packageExecutionState >= PES_UNKNOWN && packageExecutionState <= PES_TERMINATED) {
-							packageExecutionStateName = packageExecutionStateNameMap[packageExecutionState];
+					if (wcscmp(packageFullName, L"-") == 0) {
+						wstring id;
+						while (getline(wcin, id)) {
+							getPackageExecutionStateInner(packageDebugSettings.Get(), id.c_str());
 						}
-						wcout << packageExecutionStateName << endl;
 					}
 					else {
-						wcerr << L"Error in GetPackageExecutionState 0x" << hex << hr << endl;
+						getPackageExecutionStateInner(packageDebugSettings.Get(), packageFullName);
 					}
 				}
 				else {

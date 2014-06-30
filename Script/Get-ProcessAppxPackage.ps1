@@ -71,13 +71,38 @@ if (!$allInput) {
 	$allInput = (Get-Process);
 }
 
+$packageFullNameList = @();
+$processIdToPackageFullName = @{};
+$packageFullNameToExecutionState = @{};
+$packageFullNameToPackage = @{};
+
+$allInput.Id | .(ScriptDir("ProcessIdToPackageId.exe")) - | %{
+	$split = $_.Split("`t");
+	if ($split[1]) {
+		$processIdToPackageFullName[[int]$split[0]] = $split[1];
+		$packageFullNameList += $split[1];
+	}
+};
+
+$packageFullNameList | .(ScriptDir("PackageExecutionState.exe")) /get - | %{
+	$split = $_.Split("`t");
+	if ($split[1]) {
+		$packageFullNameToExecutionState[$split[0]] = $split[1];
+	}
+};
+
+#(.(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge) | %{ 
+Get-AppxPackage | %{
+	$packageFullNameToPackage[$_.PackageFullName] = $_;
+};
+
 $allInput | %{
-	$pfn = (.(ScriptDir("ProcessIdToPackageId.exe")) $_.Id).Split("`t")[1];
+	$pfn = $processIdToPackageFullName[$_.Id];
 	$package = $null;
 	$packageState = $null;
 	if ($pfn) {
-		$package = (.(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge) | ?{ $_.PackageFullName -match $pfn };
-		$packageState = (.(ScriptDir("PackageExecutionState.exe")) /get $pfn);
+		$package = $packageFullNameToPackage[$pfn];
+		$packageState = $packageFullNameToExecutionState[$pfn];
 	}
 
 	$process = $_;
@@ -104,7 +129,7 @@ $allInput | %{
 			($outputObject.PackageFullName -like $ProcessFilter);
 	}
 
-	if (($ProcessFilter -and $filterMatch) -or (!$ProcessFilter -and ($All -or $package))) {
+	if (($ProcessFilter -and $filterMatch) -or (!$ProcessFilter -and ($All -or $pfn))) {
 		$outputObject;
 	}
 }
