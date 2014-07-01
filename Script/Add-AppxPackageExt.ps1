@@ -49,8 +49,6 @@
     BackgroundTasks     : {}
     InstallTimeUtc      : 6/26/2014 3:14:11 PM
 
-    In this example, an Appx package with the same package full name already existed so Add-AppxPackageExt failed until
-    the user tried again this time passing -Force.
 .LINK
     Add-AppxPackageExt.ps1
 .LINK

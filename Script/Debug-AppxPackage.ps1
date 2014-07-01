@@ -41,7 +41,7 @@
     BackgroundTasks     : {}
     InstallTimeUtc      : 6/26/2014 3:14:11 PM
     
-    Attach a debugger to a package the next time it is run using Debug-AppxPackage.
+    # Attach a debugger to a package the next time it is run using Debug-AppxPackage.
 .EXAMPLE
     PS C:\Users\Dave> Get-ProcessAppxPackage *backgroundtask* | Debug-AppxPackage.ps1 -On C:\debuggers\windbg.exe
     
@@ -55,7 +55,7 @@
     BackgroundTasks     : {}
     InstallTimeUtc      : 6/26/2014 3:14:11 PM
     
-    Attach a debugger to a currently running package
+    # Attach a debugger to a currently running package
 .EXAMPLE
     PS C:\Users\Dave> Get-AppxPackageExt *backgroundtask* | Debug-AppxPackage.ps1 -Off
     
@@ -69,7 +69,7 @@
     BackgroundTasks     : {}
     InstallTimeUtc      : 6/26/2014 3:14:11 PM
     
-    Turn off debugging a package.
+    # Turn off debugging a package.
 .LINK
     Add-AppxPackageExt.ps1
 .LINK

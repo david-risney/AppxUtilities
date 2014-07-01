@@ -21,17 +21,17 @@ popd;
 
 $commandHelpAsMarkdown = dir bin\*ps1 | %{
 	$help = (get-help $_.FullName);
-	"### " + $_.Name + " " + $help.Synopsis;
+	"### " + $_.Name + " - " + $help.Synopsis;
 	"";
 	$help.description | ?{ $_ -and $_.Text } | %{ $_.Text.Split("`n"); };
 	"";
 	$help.Examples | %{
 		$_.Example | %{
-			$_.Introduction.Text + " " + $_.Code;
+			"Example:";
 			"";
-			$_.Remarks | ?{ $_ -and $_.Text } | %{ $_.Text.Split("`n"); };
-		} | %{
-			"    " + $_;
+			"    " + $_.Introduction.Text + " " + $_.Code;
+			"    " + "";
+			$_.Remarks | ?{ $_ -and $_.Text } | %{ $_.Text.Split("`n"); } | %{ "    " + $_; };
 		};
 		"";
 		"";

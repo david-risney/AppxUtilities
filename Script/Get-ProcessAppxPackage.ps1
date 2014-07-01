@@ -1,34 +1,39 @@
 <#
 .SYNOPSIS
     Get Appx package info for running processes.
+
 .DESCRIPTION
     A wrapper for Get-Process, this script provides information about the 
     running processes package identity and package execution state.
+
 .PARAMETER ProcessFilter
     Filter the output using this to match either process ID, process name,
     or package name.
+
 .PARAMETER All
     Display all processes in result even if they don't have package identity.
+
 .PARAMETER MergeType
     Usually the results output are of a custom PSObject type that cannot be
     fed into pre-existing PowerShell Appx commands. MergeType will instead
     use the pre-existing PowerShell types and attach new properties (that
     will not be displayed by the existing type) to the existing types.
-.EXAMPLE
-PS C:\Users\Dave> Get-ProcessAppxPackage
-
-PackageFullName               State                         ProcessName                                              Id
----------------               -----                         -----------                                              --
-microsoft.windowscommunica... suspended                     livecomm                                              11516
-Microsoft.SkypeApp_2.8.0.1... suspended                     WWAHost                                               16796
-
 
 .EXAMPLE
-PS C:\Users\Dave> Get-ProcessAppxPackage Skype
+    PS C:\Users\Dave> Get-ProcessAppxPackage
+    
+    PackageFullName               State                         ProcessName                                              Id
+    ---------------               -----                         -----------                                              --
+    microsoft.windowscommunica... suspended                     livecomm                                              11516
+    Microsoft.SkypeApp_2.8.0.1... suspended                     WWAHost                                               16796
 
-PackageFullName               State                         ProcessName                                              Id
----------------               -----                         -----------                                              --
-Microsoft.SkypeApp_2.8.0.1... suspended                     WWAHost   
+.EXAMPLE
+    PS C:\Users\Dave> Get-ProcessAppxPackage Skype
+    
+    PackageFullName               State                         ProcessName                                              Id
+    ---------------               -----                         -----------                                              --
+    Microsoft.SkypeApp_2.8.0.1... suspended                     WWAHost   
+
 .LINK
     Add-AppxPackageExt.ps1
 .LINK
