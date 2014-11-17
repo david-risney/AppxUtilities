@@ -88,8 +88,8 @@ $PackagePath + $input | ?{ $_ } | %{
 	}
 	else {
 		$id = $manifestAsXml.Package.Identity;
-		$displayName = (select-xml -xml $manifestAsXml -xpath "/appx:Package/appx:Properties/appx:DisplayName" -namespace @{appx="http://schemas.microsoft.com/appx/2010/manifest"}).Node."#text"
-		$applicationIds = (@() + (select-xml -xml $manifestAsXml -xpath "//appx:Application/@Id" -namespace @{appx="http://schemas.microsoft.com/appx/2010/manifest"})) | 
+		$displayName = (select-xml -xml $manifestAsXml -xpath "/*[local-name() = 'Package']/*[local-name() = 'Properties']/*[local-name() = 'DisplayName']" ).Node."#text"
+		$applicationIds = (@() + (select-xml -xml $manifestAsXml -xpath "//*[local-name() = 'Application']/@Id" )) | 
 			%{ $_.Node."#text" };
 		$applicationIds = @() + $applicationIds; # Make sure its an array even if there's only one element.
 
