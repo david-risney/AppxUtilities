@@ -8,6 +8,10 @@ Fill in functionality gaps for Windows Store AppX package PowerShell commands.
  - Open a new PowerShell prompt, cd to the temporary directory, and run ```Unblock-File *```. 
  - Move the files to somewhere in your PATH.
 
+Or try the new remote install script:
+
+    (new-object Net.WebClient).DownloadString("https://david-risney.github.io/AppxUtilities/install.ps1") | iex
+
 ## Commands
 
 AppxUtilities provides the following commands:
