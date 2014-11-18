@@ -3,7 +3,7 @@ param(
     $Force);
 
 # Test if it already exists
-if (Test-Path ($InstallPath + "\Launch-AppxPackage.ps1") -and !$Force) {
+if ((Test-Path ($InstallPath + "\Launch-AppxPackage.ps1")) -and !$Force) {
     throw "AppxUtilities already installed.";
 }
 else {
