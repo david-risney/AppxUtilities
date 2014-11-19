@@ -4,8 +4,8 @@ param(
 
 # Make install directory
 if (!(Test-Path $InstallPath)) {
-    "Creating install path: "  + $InstallPath;
     mkdir $InstallPath | Out-Null;
+    "Created install path: "  + $InstallPath;
 }
 else {
     "Install path already exists: "  + $InstallPath;
@@ -39,7 +39,9 @@ $zipFile = gi ($InstallPath.FullName + "\AppxUtilities.zip");
 
 # Extract zip to install directory
 [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.FileSystem") | Out-Null;
-[System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile.FullName, $InstallPath.FullName);
+[System.IO.Compression.ZipFile]::OpenRead($zipFile.FullName).Entries | %{
+    [System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, (Join-Path $InstallPath.FullName $_.FullName), $true);
+}
 "Extracted AppxUtilities.zip";
 
 # Delete zip
