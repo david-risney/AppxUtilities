@@ -71,6 +71,7 @@
     Terminate-AppxPackage.ps1
 #>
 param([object[]] $Paths,
+	[switch] $Register,
 	[switch] $Force,
 	[switch] $MergeType);
 
@@ -83,6 +84,17 @@ function ScriptDir($additional) {
 	 $myPath + "\" + $additional;
 }
 
+function addPackage {
+    param($Path,
+        $Register);
+    if ($Register) {
+        Add-AppxPackage -Register $Path;
+    }
+    else {
+        Add-AppxPackage $Path;
+    }
+}
+
 $Paths + $input | %{
 	$Path = $_;
 	if ($Path.GetType() -eq "FileInfo") {
@@ -91,7 +103,7 @@ $Paths + $input | %{
 
 	$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
 
-	$lastError = (Add-AppxPackage $Path 2>&1);
+	$lastError = (addPackage $Path $Register 2>&1);
 
     if ($lastError -and $Force) {
     	if ($error.CategoryInfo.Category -eq "ResourceExists") {
@@ -99,7 +111,7 @@ $Paths + $input | %{
     		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
     			Remove-AppxPackage $_
     			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
-    			Add-AppxPackage $Path;
+    			addPackage $Path $Register;
     		}
     	}
         elseif ($lastError.Exception -and `
@@ -109,7 +121,7 @@ $Paths + $input | %{
             $certPath = $env:TEMP + "\Add-AppxPackageExt.tmp.cer";
             [System.IO.File]::WriteAllBytes($certPath, (Get-AuthenticodeSignature ($Path)).SignerCertificate.Export("Cert"));
             [void](certutil.exe -addstore TrustedPeople $certPath);
-            Add-AppxPackage $Path;
+            addPackage $Path $Register;
             del $certPath;
         }
 	    elseif ($lastError) {
