@@ -5,7 +5,7 @@ param(
 # Make install directory
 if (!(Test-Path $InstallPath)) {
     "Creating install path: "  + $InstallPath;
-    mkdir $InstallPath;
+    mkdir $InstallPath | Out-Null;
 }
 else {
     "Install path already exists: "  + $InstallPath;
@@ -35,10 +35,12 @@ $client = (New-Object Net.WebClient);
 $client.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;
 $client.DownloadFile("https://david-risney.github.io/AppxUtilities/AppxUtilities.zip", $InstallPath.FullName + "\AppxUtilities.zip");
 $zipFile = gi ($InstallPath.FullName + "\AppxUtilities.zip");
+"Downloaded AppxUtilities.zip";
 
 # Extract zip to install directory
 [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.FileSystem") | Out-Null;
 [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile.FullName, $InstallPath.FullName);
+"Extracted AppxUtilities.zip";
 
 # Delete zip
 rm AppxUtilities.zip;
