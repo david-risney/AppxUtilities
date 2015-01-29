@@ -71,7 +71,6 @@
     Terminate-AppxPackage.ps1
 #>
 param([object[]] $Paths,
-	[switch] $Register,
 	[switch] $Force,
 	[switch] $MergeType);
 
@@ -85,9 +84,12 @@ function ScriptDir($additional) {
 }
 
 function addPackage {
-    param($Path,
-        $Register);
-    if ($Register) {
+    param($Path);
+
+    if (Test-Path -PathType Container $Path) {
+        Add-AppxPackage -Register (Join-Path $Path "AppxManifest.xml");
+    }
+    elseif ((dir $Path).Name -eq "appxmanifest.xml") {
         Add-AppxPackage -Register $Path;
     }
     else {
@@ -95,7 +97,7 @@ function addPackage {
     }
 }
 
-$Paths + $input | %{
+$Paths + $input | ?{ $_ } | %{
 	$Path = $_;
 	if ($Path.GetType() -eq "FileInfo") {
 		$Path = $Path.FullName;
@@ -103,7 +105,7 @@ $Paths + $input | %{
 
 	$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
 
-	$lastError = (addPackage $Path $Register 2>&1);
+	$lastError = (addPackage $Path 2>&1);
 
     if ($lastError -and $Force) {
     	if ($error.CategoryInfo.Category -eq "ResourceExists") {
@@ -111,7 +113,7 @@ $Paths + $input | %{
     		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
     			Remove-AppxPackage $_
     			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
-    			addPackage $Path $Register;
+    			addPackage $Path;
     		}
     	}
         elseif ($lastError.Exception -and `
@@ -121,7 +123,7 @@ $Paths + $input | %{
             $certPath = $env:TEMP + "\Add-AppxPackageExt.tmp.cer";
             [System.IO.File]::WriteAllBytes($certPath, (Get-AuthenticodeSignature ($Path)).SignerCertificate.Export("Cert"));
             [void](certutil.exe -addstore TrustedPeople $certPath);
-            addPackage $Path $Register;
+            addPackage $Path;
             del $certPath;
         }
         elseif ($lastError.Exception -and `
@@ -129,7 +131,7 @@ $Paths + $input | %{
 
             Show-WindowsDeveloperLicenseRegistration;
 
-            addPackage $Path $Register;
+            addPackage $Path;
         }
 	    elseif ($lastError) {
 		    $lastError;
