@@ -124,6 +124,13 @@ $Paths + $input | %{
             addPackage $Path $Register;
             del $certPath;
         }
+        elseif ($lastError.Exception -and `
+            $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CFF, To install this application you need either a Windows developer license or a sideloading-enabled system.") {
+
+            Show-WindowsDeveloperLicenseRegistration;
+
+            addPackage $Path $Register;
+        }
 	    elseif ($lastError) {
 		    $lastError;
 	    }
