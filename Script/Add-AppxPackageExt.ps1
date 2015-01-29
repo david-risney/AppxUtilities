@@ -114,6 +114,7 @@ $Paths + $input | ?{ $_ } | %{
     			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
     			addPackage $Path;
     		}
+            $lastError = $null;
     	}
         elseif ($lastError.Exception -and `
             $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CF9, Install failed." -and `
@@ -123,6 +124,7 @@ $Paths + $input | ?{ $_ } | %{
     		Get-AppxPackage $matches[1] | Remove-AppxPackage;
     		$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
     		addPackage $Path;
+            $lastError = $null;
         }
         elseif ($lastError.Exception -and `
             $lastError.Exception.InnerException -and `
@@ -133,6 +135,7 @@ $Paths + $input | ?{ $_ } | %{
             [void](certutil.exe -addstore TrustedPeople $certPath);
             addPackage $Path;
             del $certPath;
+            $lastError = $null;
         }
         elseif ($lastError.Exception -and `
             $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CFF, To install this application you need either a Windows developer license or a sideloading-enabled system.") {
@@ -140,6 +143,7 @@ $Paths + $input | ?{ $_ } | %{
             Show-WindowsDeveloperLicenseRegistration;
 
             addPackage $Path;
+            $lastError = $null;
         }
 	    elseif ($lastError) {
 		    $lastError;
@@ -154,7 +158,15 @@ $Paths + $input | ?{ $_ } | %{
 	$before = @() + $before;
 	$after = @() + $after;
 
-	$PackagesAdded += @(diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject })
+    $diff = diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject };
+    if (!$diff -and !$lastError) { 
+        # If you readd exactly the same package, add-appxpackage gives no error and the installed package list doesn't change.
+        # In that case, try to get the package info from the path we were told to install.
+        $diff = .(ScriptDir("Get-AppxPackageFile.ps1")) -MergeType:$merge $Path;
+    }
+
+	$PackagesAdded += @($diff)
+
 }
 
 $PackagesAdded;
