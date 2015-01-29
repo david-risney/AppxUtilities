@@ -109,13 +109,21 @@ $Paths + $input | ?{ $_ } | %{
 
     if ($lastError -and $Force) {
     	if ($error.CategoryInfo.Category -eq "ResourceExists") {
-    		$errorPrefix = "Deployment of package ";
     		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
     			Remove-AppxPackage $_
     			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
     			addPackage $Path;
     		}
     	}
+        elseif ($lastError.Exception -and `
+            $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CF9, Install failed." -and `
+            $lastError.Exception.Message -match "The current user has already installed (an unpackaged|a packaged) version of this app. (A packaged|An unpackaged) version cannot replace this." -and `
+            $lastError.Exception.Message -match "conflicting package is ([^ ]*)") {
+
+    		Get-AppxPackage $matches[1] | Remove-AppxPackage;
+    		$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
+    		addPackage $Path;
+        }
         elseif ($lastError.Exception -and `
             $lastError.Exception.InnerException -and `
             $lastError.Exception.InnerException.Message -eq "error 0x800B0109: The root certificate of the signature in the app package or bundle must be trusted.") {
