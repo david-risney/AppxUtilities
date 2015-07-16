@@ -72,18 +72,22 @@
 #>
 param([object[]] $Paths,
 	[switch] $Force,
+    [switch] $InstallOnlyCertificate,
 	[switch] $MergeType);
 
 $PackagesAdded = @();
 
 $merge = !!$MergeType;
 
+$runningElevated = ([Security.Principal.WindowsIdentity]::GetCurrent().Groups.Value -contains "S-1-5-32-544");
+
+$scriptPath = (Get-Variable MyInvocation).Value.MyCommand.Path;
 $myPath = (Split-Path -Parent ($MyInvocation.MyCommand.Path));
 function ScriptDir($additional) {
 	 $myPath + "\" + $additional;
 }
 
-function addPackage {
+function addPackageInternal {
     param($Path);
 
     if (Test-Path -PathType Container $Path) {
@@ -97,6 +101,53 @@ function addPackage {
     }
 }
 
+function launchElevatedAndWait {
+    param($cmd);
+
+    # Launch the process and wait for it to finish
+    $adminProcess = Start-Process "$PsHome\PowerShell.exe" -Verb RunAs -ArgumentList $cmd -PassThru
+
+    # There must be a better way...
+    while (!($adminProcess.HasExited)) {
+        Start-Sleep -Seconds 1
+    }
+}
+
+function installCert {
+    param($Path);
+
+    if ($runningElevated) {
+        $certPath = $env:TEMP + "\Add-AppxPackageExt.tmp.cer";
+        $certBytes = (Get-AuthenticodeSignature ($Path)).SignerCertificate.Export("Cert");
+        [System.IO.File]::WriteAllBytes($certPath, $certBytes);
+        [void](certutil.exe -addstore TrustedPeople $certPath);
+        del $certPath;
+    } else {
+        $elevatedArgs = '-ExecutionPolicy Unrestricted -file "' + $scriptPath + '"' +
+            " -InstallOnlyCertificate " + $Path;
+        launchElevatedAndWait $elevatedArgs;
+    }
+}
+
+function applyDevLicense {
+    # Probably a better way to do this...
+    $osMajorVersion = [int](cmd /c ver | %{ if ($_ -match "Version ([0-9]*)") { $matches[1]; } });
+
+    if ($osMajorVersion -lt 10) {
+        if ($runningElevated) {
+            Show-WindowsDeveloperLicenseRegistration;
+        } else {
+            launchElevatedAndWait "-Command Show-WindowsDeveloperLicenseRegistration";
+        }
+    } else {
+        if ($runningElevated) {
+            reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1";
+        } else {
+            launchElevatedAndWait '-Command reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"';
+        }
+    }
+}
+
 $Paths + $input | ?{ $_ } | %{
 	$Path = $_;
 	if ($Path.GetType() -eq "FileInfo") {
@@ -104,69 +155,78 @@ $Paths + $input | ?{ $_ } | %{
 	}
 
 	$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
+    $errorResolutions = @();
 
-	$lastError = (addPackage $Path 2>&1);
+    do {
+        if ($InstallOnlyCertificate) {
+            installCert $Path;
+        } else {
+            $lastError = (addPackageInternal $Path 2>&1);
+            $errorResolved = $false;
 
-    if ($lastError -and $Force) {
-    	if ($error.CategoryInfo.Category -eq "ResourceExists") {
-    		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
-    			Remove-AppxPackage $_
-    			$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
-    			addPackage $Path;
-    		}
-            $lastError = $null;
-    	}
-        elseif ($lastError.Exception -and `
-            $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CF9, Install failed." -and `
-            $lastError.Exception.Message -match "The current user has already installed (an unpackaged|a packaged) version of this app. (A packaged|An unpackaged) version cannot replace this." -and `
-            $lastError.Exception.Message -match "conflicting package is ([^ ]*)") {
+            if ($lastError -and $Force) {
+            	if ($lastError.CategoryInfo.Category -eq "ResourceExists") {
+            		$lastError.Exception.Message.Split("`n") | ?{ $_ -match "Deployment of package" } | %{ $_ -replace "Deployment of package ([^ ]*).*","`$1" } | %{
+                        if (!($errorResolutions | ?{ $_ -match "remove1" })) {
+            			    Remove-AppxPackage $_
+            			    $before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
+                            $errorResolved = $true;
+                            $errorResolutions += "remove1";
+                        }
+            		}
+            	}
+                elseif ($lastError.Exception -and `
+                    $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CF9, Install failed." -and `
+                    $lastError.Exception.Message -match "The current user has already installed (an unpackaged|a packaged) version of this app. (A packaged|An unpackaged) version cannot replace this." -and `
+                    $lastError.Exception.Message -match "conflicting package is ([^ ]*)") {
 
-    		Get-AppxPackage $matches[1] | Remove-AppxPackage;
-    		$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
-    		addPackage $Path;
-            $lastError = $null;
+                    if (!($errorResolutions | ?{ $_ -match "remove2" })) {
+            		    Get-AppxPackage $matches[1] | Remove-AppxPackage;
+            		    $before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
+                        $errorResolved = $true;
+                        $errorResolutions += "remove2";
+                    }
+                }
+                elseif ($lastError.Exception -and `
+                    $lastError.Exception.InnerException -and `
+                    $lastError.Exception.InnerException.Message -eq "error 0x800B0109: The root certificate of the signature in the app package or bundle must be trusted.") {
+            
+                    if (!($errorResolutions | ?{ $_ -match "cert" })) {
+                        installCert $Path
+                        $errorResolved = $true;
+                        $errorResolutions += "cert";
+                    }
+                }
+                elseif ($lastError.Exception -and `
+                    $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CFF, To install this application you need either a Windows developer license or a sideloading-enabled system.") {
+
+                    if (!($errorResolutions | ?{ $_ -match "devlic" })) {
+                        applyDevLicense;
+                        $errorResolved = $true;
+                        $errorResolutions += "devlic";
+                    }
+                }
+            }
         }
-        elseif ($lastError.Exception -and `
-            $lastError.Exception.InnerException -and `
-            $lastError.Exception.InnerException.Message -eq "error 0x800B0109: The root certificate of the signature in the app package or bundle must be trusted.") {
-    
-            $certPath = $env:TEMP + "\Add-AppxPackageExt.tmp.cer";
-            [System.IO.File]::WriteAllBytes($certPath, (Get-AuthenticodeSignature ($Path)).SignerCertificate.Export("Cert"));
-            [void](certutil.exe -addstore TrustedPeople $certPath);
-            addPackage $Path;
-            del $certPath;
-            $lastError = $null;
-        }
-        elseif ($lastError.Exception -and `
-            $lastError.Exception.Message -match "Deployment failed with HRESULT: 0x80073CFF, To install this application you need either a Windows developer license or a sideloading-enabled system.") {
+    } while ($lastError -and $errorResolved);
 
-            Show-WindowsDeveloperLicenseRegistration;
-
-            addPackage $Path;
-            $lastError = $null;
-        }
-	    elseif ($lastError) {
-		    $lastError;
-	    }
-    }
-    else {
+    if ($lastError -and !$errorResolved) {
         $lastError;
+    } else {
+	    $after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
+
+	    $before = @() + $before;
+	    $after = @() + $after;
+
+        $diff = diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject };
+        if (!$diff -and !$lastError) { 
+            # If you readd exactly the same package, add-appxpackage gives no error and the installed package list doesn't change.
+            # In that case, try to get the package info from the path we were told to install.
+            $diff = .(ScriptDir("Get-AppxPackageFile.ps1")) -MergeType:$merge $Path;
+        }
+
+	    $PackagesAdded += @($diff)
     }
-
-	$after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
-
-	$before = @() + $before;
-	$after = @() + $after;
-
-    $diff = diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject };
-    if (!$diff -and !$lastError) { 
-        # If you readd exactly the same package, add-appxpackage gives no error and the installed package list doesn't change.
-        # In that case, try to get the package info from the path we were told to install.
-        $diff = .(ScriptDir("Get-AppxPackageFile.ps1")) -MergeType:$merge $Path;
-    }
-
-	$PackagesAdded += @($diff)
-
 }
 
 $PackagesAdded;
