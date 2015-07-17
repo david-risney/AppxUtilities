@@ -153,6 +153,7 @@ $Paths + $input | ?{ $_ } | %{
 	if ($Path.GetType() -eq "FileInfo") {
 		$Path = $Path.FullName;
 	}
+    $Path = (gi $Path).FullName;
 
 	$before = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
     $errorResolutions = @();
@@ -210,22 +211,24 @@ $Paths + $input | ?{ $_ } | %{
         }
     } while ($lastError -and $errorResolved);
 
-    if ($lastError -and !$errorResolved) {
-        $lastError;
-    } else {
-	    $after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
+    if (!$InstallOnlyCertificate) {
+        if ($lastError -and !$errorResolved) {
+            $lastError;
+        } else {
+	        $after = .(ScriptDir("Get-AppxPackageExt.ps1")) -MergeType:$merge;
 
-	    $before = @() + $before;
-	    $after = @() + $after;
+	        $before = @() + $before;
+	        $after = @() + $after;
 
-        $diff = diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject };
-        if (!$diff -and !$lastError) { 
-            # If you readd exactly the same package, add-appxpackage gives no error and the installed package list doesn't change.
-            # In that case, try to get the package info from the path we were told to install.
-            $diff = .(ScriptDir("Get-AppxPackageFile.ps1")) -MergeType:$merge $Path;
+            $diff = diff $before $after | where SideIndicator -eq "=>" | %{ $_.InputObject };
+            if (!$diff -and !$lastError) { 
+                # If you readd exactly the same package, add-appxpackage gives no error and the installed package list doesn't change.
+                # In that case, try to get the package info from the path we were told to install.
+                $diff = .(ScriptDir("Get-AppxPackageFile.ps1")) -MergeType:$merge $Path;
+            }
+
+	        $PackagesAdded += @($diff)
         }
-
-	    $PackagesAdded += @($diff)
     }
 }
 
