@@ -20,6 +20,13 @@
     fed into pre-existing PowerShell Appx commands. MergeType will instead
     use the pre-existing PowerShell types and attach new properties (that
     will not be displayed by the existing type) to the existing types.
+.PARAMETER InstallOnlyCertificate
+    Instead of installing the specified appx package, only install its certificate.
+.PARAMETER CustomAddCommand
+    Install specified appx package using a custom command. If the string for this
+    parameter contains a '}' then {0} is replaced with the path to the appx package.
+    Otherwise a space and the package path is appended to the string to form the
+    install command.
 .EXAMPLE
     PS C:\Users\Dave> Add-AppxPackageExt .\BackgroundTask2.appx
     Add-AppxPackage : Deployment failed with HRESULT: 0x80073CFB, The provided package is already installed, and
@@ -71,6 +78,7 @@
     Terminate-AppxPackage.ps1
 #>
 param([object[]] $Paths,
+    [string] $CustomAddCommand,
 	[switch] $Force,
     [switch] $InstallOnlyCertificate,
 	[switch] $MergeType);
@@ -90,13 +98,18 @@ function ScriptDir($additional) {
 function addPackageInternal {
     param($Path);
 
-    if (Test-Path -PathType Container $Path) {
+    if ($CustomAddCommand) {
+        if ($CustomAddCommand.IndexOf("{0}") -ge 0) {
+            $command = $CustomAddCommand -f $Path;
+        } else {
+            $command = $CustomAddCommand + " " + $Path;
+        }
+        .($command);
+    } elseif (Test-Path -PathType Container $Path) {
         Add-AppxPackage -Register (Join-Path $Path "AppxManifest.xml");
-    }
-    elseif ((dir $Path).Name -eq "appxmanifest.xml") {
+    } elseif ((dir $Path).Name -eq "appxmanifest.xml") {
         Add-AppxPackage -Register $Path;
-    }
-    else {
+    } else {
         Add-AppxPackage $Path;
     }
 }
