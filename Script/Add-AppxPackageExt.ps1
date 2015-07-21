@@ -117,8 +117,12 @@ function installCert {
     param($Path);
 
     if ($runningElevated) {
+        $cert = (Get-AuthenticodeSignature -FilePath $Path).SignerCertificate;
+        $chain = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Chain;
+        $chain.Build($cert);
+        $certBytes = $chain.ChainElements[$chain.ChainElements.Count - 1].Certificate.Export("Cert");
+
         $certPath = $env:TEMP + "\Add-AppxPackageExt.tmp.cer";
-        $certBytes = (Get-AuthenticodeSignature ($Path)).SignerCertificate.Export("Cert");
         [System.IO.File]::WriteAllBytes($certPath, $certBytes);
         [void](certutil.exe -addstore TrustedPeople $certPath);
         del $certPath;
