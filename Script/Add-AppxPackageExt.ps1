@@ -207,7 +207,8 @@ $Paths + $input | ?{ $_ } | %{
                 }
                 elseif ($lastError.Exception -and `
                     $lastError.Exception.InnerException -and `
-                    $lastError.Exception.InnerException.Message -eq "error 0x800B0109: The root certificate of the signature in the app package or bundle must be trusted.") {
+                    (($lastError.Exception.InnerException.Message -eq "error 0x800B010A: The root certificate and all intermediate certificates of the signature in the app package or bundle must be trusted.") -or `
+                     ($lastError.Exception.InnerException.Message -eq "error 0x800B0109: The root certificate of the signature in the app package or bundle must be trusted."))) {
             
                     if (!($errorResolutions | ?{ $_ -match "cert" })) {
                         installCert $Path
